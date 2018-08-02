@@ -1,0 +1,17 @@
+Limitações.
+
+
+Apenas suporta Java.
+Não foi definida uma interface para facilitar o suporte para outras linguagens.
+Não há verificação se o email pertence ao usuário, ou se ao menos existe.
+Não há recuperação de senha.
+Não há criptografia na senha.
+Não há implementação de busca por problemas, usuários, universidades.
+Não há paginação para as listagens.
+No cadastro de um problema, a descrição do problema tem que ser editada com html.
+No cadastro de um problema, os arquivos de teste devem seguir a convenção de nomes determinada. A convenção determina que $arq.in é um arquivo de entrada e $arq.sol é o arquivo com a solução para a entrada $arq.in. Em caso de não respeitar a convenção, resultará em lançamento de exceções.
+No cadastro de universidades não há verificação se a universidade existe.
+Na execução das submissões do usuário não é garantida a segurança de que o usuário não conseguiria acessar dados ou funções não permitidas para manter o sistema seguro.
+Não há testes de unidade há fim de garantir a não regressão do projeto.
+
+ 

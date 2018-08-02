@@ -1,0 +1,49 @@
+server:
+  port: 8080
+  # ssl:
+  #   key-store-type: JKS
+  #   key-store: classpath:ssl_cert/keystore.jks
+  #   key-store-password: naivejudge3470
+  #   key-alias: naivejudge
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://localhost:3306/naivejudge?useSSL=false
+    username: naivejudge
+    password: naivejudge
+    driver-class-name: com.mysql.jdbc.Driver
+    hikari:
+      initial-size: 5
+      maximum-pool-size: 20
+      max-active: 50
+      min-idle: 8
+      max-idle: 8
+      max-wait: 3000
+      test-on-borrow: true
+      test-on-return: true
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      packages-to-scan: org.ufla.dcc.naivejudge.modelo
+      hibernate:
+        show-sql: true
+        format-sql: true
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+        current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
+  servlet:
+      multipart:
+        max-file-size: 20MB
+        max-request-size: 20MB
+  http:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+      max-upload-size: 20MB
+      max-in-memory-size: 1MB
+      enabled: true
+  mvc:
+    view:
+      prefix: /WEB-INF/view/
+      suffix: .jsp
