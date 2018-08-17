@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.problema;
+package org.ufla.dcc.naivejudge.domain.problem;
 
 import java.io.Serializable;
 import javax.persistence.Column;
@@ -6,33 +6,25 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import org.ufla.dcc.naivejudge.modelo.enums.Estado;
 
 @Entity
-public class ProblemaEstatisticas implements Serializable {
+public class ProblemStatistics implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  private Integer id;
+  private Long id;
 
   @Column(nullable = false)
-  private Integer qtdSubmissoes;
+  private Integer qtySubmissions;
 
   @Column(nullable = false)
-  private Integer qtdResolucoes;
+  private Integer qtyAccepted;
 
-  public ProblemaEstatisticas() {
-    inicializar();
-  }
-
-  public void atualizar(boolean naoResolvido, Estado estado) {
-    qtdSubmissoes++;
-    if (naoResolvido && Estado.CORRETO.equals(estado)) {
-      qtdResolucoes++;
-    }
+  public ProblemStatistics() {
+    init();
   }
 
   @Override
@@ -43,7 +35,7 @@ public class ProblemaEstatisticas implements Serializable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    ProblemaEstatisticas other = (ProblemaEstatisticas) obj;
+    ProblemStatistics other = (ProblemStatistics) obj;
     if (id == null) {
       if (other.id != null)
         return false;
@@ -52,16 +44,16 @@ public class ProblemaEstatisticas implements Serializable {
     return true;
   }
 
-  public Integer getId() {
+  public Long getId() {
     return id;
   }
 
-  public Integer getQtdResolucoes() {
-    return qtdResolucoes;
+  public Integer getQtyAccepted() {
+    return qtyAccepted;
   }
 
-  public Integer getQtdSubmissoes() {
-    return qtdSubmissoes;
+  public Integer getQtySubmissions() {
+    return qtySubmissions;
   }
 
   @Override
@@ -72,27 +64,34 @@ public class ProblemaEstatisticas implements Serializable {
     return result;
   }
 
-  public void setId(Integer id) {
+  private void init() {
+    this.qtySubmissions = 0;
+    this.qtyAccepted = 0;
+  }
+
+  public void setId(Long id) {
     this.id = id;
   }
 
-  public void setQtdResolucoes(Integer qtdResolucoes) {
-    this.qtdResolucoes = qtdResolucoes;
+  public void setQtyAccepted(Integer qtyAccepted) {
+    this.qtyAccepted = qtyAccepted;
   }
 
-  public void setQtdSubmissoes(Integer qtdSubmissoes) {
-    this.qtdSubmissoes = qtdSubmissoes;
+  public void setQtySubmissions(Integer qtySubmissions) {
+    this.qtySubmissions = qtySubmissions;
   }
 
   @Override
   public String toString() {
-    return "ProblemaEstatiscas [id=" + id + ", qtdSubmissoes=" + qtdSubmissoes + ", qtdResolucoes="
-        + qtdResolucoes + "]";
+    return "ProblemStatistics [id=" + id + ", qtySubmissions=" + qtySubmissions + ", qtyAccepteds="
+        + qtyAccepted + "]";
   }
 
-  private void inicializar() {
-    this.qtdSubmissoes = 0;
-    this.qtdResolucoes = 0;
+  public void update(boolean notAccepted, State state) {
+    qtySubmissions++;
+    if (notAccepted && State.ACCEPTED.equals(state)) {
+      qtyAccepted++;
+    }
   }
 
 }

@@ -1,46 +1,47 @@
-package org.ufla.dcc.naivejudge.controlador;
+package org.ufla.dcc.naivejudge.dto;
 
 import java.io.Serializable;
 
-public class Mensagem implements Serializable {
+public class Message implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  private String conteudo;
-  private TipoDeAlerta tipoDeAlerta;
+  private String content;
 
-  public Mensagem() {
+  private AlertType alertType;
+
+  public Message() {
 
   }
 
-  public Mensagem(String conteudo, TipoDeAlerta tipoDeAlerta) {
-    this.conteudo = conteudo;
-    this.tipoDeAlerta = tipoDeAlerta;
+  public Message(String content, AlertType alertType) {
+    this.content = content;
+    this.alertType = alertType;
   }
 
-  public String getConteudo() {
-    return conteudo;
+  public AlertType getAlertType() {
+    return alertType;
   }
 
-  public TipoDeAlerta getTipoDeAlerta() {
-    return tipoDeAlerta;
+  public String getContent() {
+    return content;
   }
 
   public boolean isNull() {
-    return conteudo == null && tipoDeAlerta == null;
+    return content == null && alertType == null;
   }
 
-  public void setConteudo(String conteudo) {
-    this.conteudo = conteudo;
+  public void setAlertType(AlertType alertType) {
+    this.alertType = alertType;
   }
 
-  public void setTipoDeAlerta(TipoDeAlerta tipoDeAlerta) {
-    this.tipoDeAlerta = tipoDeAlerta;
+  public void setContent(String content) {
+    this.content = content;
   }
 
   @Override
   public String toString() {
-    return "Mensagem [conteudo=" + conteudo + ", tipoDeAlerta=" + tipoDeAlerta + "]";
+    return "Message [content=" + content + ", alertType=" + alertType + "]";
   }
 
 }

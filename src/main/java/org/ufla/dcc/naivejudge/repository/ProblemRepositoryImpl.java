@@ -1,162 +1,152 @@
-package org.ufla.dcc.naivejudge.repositorio;
+package org.ufla.dcc.naivejudge.repository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.ufla.dcc.naivejudge.modelo.enums.Categoria;
-import org.ufla.dcc.naivejudge.modelo.enums.Estado;
-import org.ufla.dcc.naivejudge.modelo.forum.Forum;
-import org.ufla.dcc.naivejudge.modelo.problema.AvaliacaoProblema;
-import org.ufla.dcc.naivejudge.modelo.problema.CategoriaEstatisticas;
-import org.ufla.dcc.naivejudge.modelo.problema.CategoriaEstatisticas_;
-import org.ufla.dcc.naivejudge.modelo.problema.InstanciaProblema;
-import org.ufla.dcc.naivejudge.modelo.problema.Problema;
-import org.ufla.dcc.naivejudge.modelo.problema.ProblemaEstatisticas;
-import org.ufla.dcc.naivejudge.modelo.problema.Problema_;
+import org.ufla.dcc.naivejudge.domain.forum.Forum;
+import org.ufla.dcc.naivejudge.domain.problem.Category;
+import org.ufla.dcc.naivejudge.domain.problem.CategoryStatistics;
+import org.ufla.dcc.naivejudge.domain.problem.CategoryStatistics_;
+import org.ufla.dcc.naivejudge.domain.problem.Problem;
+import org.ufla.dcc.naivejudge.domain.problem.ProblemInstance;
+import org.ufla.dcc.naivejudge.domain.problem.ProblemJudge;
+import org.ufla.dcc.naivejudge.domain.problem.ProblemStatistics;
+import org.ufla.dcc.naivejudge.domain.problem.Problem_;
+import org.ufla.dcc.naivejudge.domain.problem.State;
 
 @Repository
-public class ProblemaDaoImpl implements ProblemaDao {
+public class ProblemRepositoryImpl implements ProblemRepository {
 
-  private SessionFactory sessionFactory;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Autowired
-  public ProblemaDaoImpl(EntityManagerFactory entityManagerFactory) {
-    sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-  }
-
-  @Override
-  public void atualizarEstatisticas(Problema problema, boolean naoResolvido, Estado estado) {
-    Session sessao = sessionFactory.getCurrentSession();
-    sessao.refresh(problema);
-    ProblemaEstatisticas estatisticas = problema.getEstatisticas();
-    estatisticas.atualizar(naoResolvido, estado);
-    sessao.saveOrUpdate(estatisticas);
-  }
-
-  @Override
-  public AvaliacaoProblema carregarAvaliacao(Problema problema) {
-    Session sessao = sessionFactory.getCurrentSession();
-    sessao.refresh(problema);
-    return problema.getAvaliacao();
-  }
+  public ProblemRepositoryImpl() {}
 
   public Forum createAForum() {
+    Session session = entityManager.unwrap(Session.class);
     Forum forum = new Forum();
-    Session sessao = sessionFactory.getCurrentSession();
-    sessao.save(forum);
+    session.save(forum);
     return forum;
   }
 
   @Override
-  public void createProblema(Problema problema) {
-    Session sessao = sessionFactory.getCurrentSession();
-    sessao.save(problema);
-    CategoriaEstatisticas categoriaEstatisticas = getCategoriaEstatistica(problema.getCategoria());
-    categoriaEstatisticas.setQtdProblemas(categoriaEstatisticas.getQtdProblemas() + 1);
-    sessao.saveOrUpdate(problema);
-  }
-
-  public ProblemaEstatisticas createProblemaEstatistica() {
-    ProblemaEstatisticas problemaEstatisticas = new ProblemaEstatisticas();
-    Session sessao = sessionFactory.getCurrentSession();
-    sessao.save(problemaEstatisticas);
-    return problemaEstatisticas;
+  public void createInstances(ProblemJudge judge, SortedSet<String> tests) {
+    Session session = entityManager.unwrap(Session.class);
+    session.refresh(judge);
+    List<ProblemInstance> instances = new ArrayList<>();
+    for (String test : tests) {
+      ProblemInstance instance = new ProblemInstance(test, judge);
+      session.save(instance);
+      instances.add(instance);
+    }
+    judge.setInstances(instances);
+    session.saveOrUpdate(judge);
   }
 
   @Override
-  public void criarInstancias(AvaliacaoProblema avaliacaoProblema, SortedSet<String> testes) {
-    Session sessao = sessionFactory.getCurrentSession();
-    sessao.refresh(avaliacaoProblema);
-    List<InstanciaProblema> instancias = new ArrayList<>();
-    for (String teste : testes) {
-      InstanciaProblema instancia = new InstanciaProblema(teste, avaliacaoProblema);
-      sessao.save(instancia);
-      instancias.add(instancia);
-    }
-    avaliacaoProblema.setInstancias(instancias);
-    sessao.saveOrUpdate(avaliacaoProblema);
+  public void createProblem(Problem problem) {
+    Session session = entityManager.unwrap(Session.class);
+    session.save(problem);
+    CategoryStatistics categoryStatistics = getCategoriaEstatistica(problem.getCategory());
+    categoryStatistics.setQtyProblems(categoryStatistics.getQtyProblems() + 1);
+    session.saveOrUpdate(problem);
   }
 
-  public CategoriaEstatisticas getCategoriaEstatistica(Categoria categoria) {
-    Session sessao = sessionFactory.getCurrentSession();
+  public ProblemStatistics createProblemStatistics() {
+    ProblemStatistics statistics = new ProblemStatistics();
+    Session session = entityManager.unwrap(Session.class);
+    session.save(statistics);
+    return statistics;
+  }
 
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<CategoriaEstatisticas> query = builder.createQuery(CategoriaEstatisticas.class);
-    Root<CategoriaEstatisticas> root = query.from(CategoriaEstatisticas.class);
-    query.select(root).where(builder.equal(root.get(CategoriaEstatisticas_.categoria), categoria));
-
+  public CategoryStatistics getCategoriaEstatistica(Category category) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<CategoryStatistics> query = builder.createQuery(CategoryStatistics.class);
+    Root<CategoryStatistics> root = query.from(CategoryStatistics.class);
+    query.select(root).where(builder.equal(root.get(CategoryStatistics_.category), category));
     try {
-      return sessao.createQuery(query).getSingleResult();
+      return session.createQuery(query).getSingleResult();
     } catch (NoResultException e) {
       return null;
     }
   }
 
   @Override
-  public List<CategoriaEstatisticas> getCategoriasEst() {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<CategoriaEstatisticas> query = builder.createQuery(CategoriaEstatisticas.class);
-    Root<CategoriaEstatisticas> root = query.from(CategoriaEstatisticas.class);
+  public List<CategoryStatistics> getCategoryStatistics() {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<CategoryStatistics> query = builder.createQuery(CategoryStatistics.class);
+    Root<CategoryStatistics> root = query.from(CategoryStatistics.class);
     query.select(root);
-
-    return sessao.createQuery(query).getResultList();
+    return session.createQuery(query).getResultList();
   }
 
   @Override
-  public Problema getProblema(Integer id) {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Problema> query = builder.createQuery(Problema.class);
-    Root<Problema> root = query.from(Problema.class);
-    query.select(root).where(builder.equal(root.get(Problema_.id), id));
+  public Problem getProblem(Long id) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<Problem> query = builder.createQuery(Problem.class);
+    Root<Problem> root = query.from(Problem.class);
+    query.select(root).where(builder.equal(root.get(Problem_.id), id));
 
     try {
-      return sessao.createQuery(query).getSingleResult();
+      return session.createQuery(query).getSingleResult();
     } catch (NoResultException e) {
       return null;
     }
   }
 
   @Override
-  public List<Problema> getProblemas() {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Problema> query = builder.createQuery(Problema.class);
-    Root<Problema> root = query.from(Problema.class);
+  public List<Problem> getProblems() {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<Problem> query = builder.createQuery(Problem.class);
+    Root<Problem> root = query.from(Problem.class);
     query.select(root);
-
-    return sessao.createQuery(query).getResultList();
+    return session.createQuery(query).getResultList();
   }
 
   @Override
-  public List<Problema> getProblemas(Categoria categoria) {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Problema> query = builder.createQuery(Problema.class);
-    Root<Problema> root = query.from(Problema.class);
-    query.select(root).where(builder.equal(root.get(Problema_.categoria), categoria));
-
-    return sessao.createQuery(query).getResultList();
+  public List<Problem> getProblems(Category category) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<Problem> query = builder.createQuery(Problem.class);
+    Root<Problem> root = query.from(Problem.class);
+    query.select(root).where(builder.equal(root.get(Problem_.category), category));
+    return session.createQuery(query).getResultList();
   }
 
   @Override
-  public void saveAvaliacaoProblema(AvaliacaoProblema avaliacaoProblema) {
-    Session sessao = sessionFactory.getCurrentSession();
-    sessao.save(avaliacaoProblema);
+  public ProblemJudge loadJudge(Problem problem) {
+    Session session = entityManager.unwrap(Session.class);
+    session.refresh(problem);
+    return problem.getJudge();
+  }
+
+  @Override
+  public void saveJudge(ProblemJudge judge) {
+    Session session = entityManager.unwrap(Session.class);
+    session.save(judge);
+  }
+
+  @Override
+  public void updateStatistics(Problem problem, boolean notAccepted, State state) {
+    Session session = entityManager.unwrap(Session.class);
+    session.refresh(problem);
+    ProblemStatistics statistics = problem.getStatistics();
+    statistics.update(notAccepted, state);
+    session.saveOrUpdate(statistics);
   }
 
 }

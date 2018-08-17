@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.usuario;
+package org.ufla.dcc.naivejudge.domain.user;
 
 import java.io.Serializable;
 import javax.persistence.Column;
@@ -10,114 +10,48 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import org.ufla.dcc.naivejudge.modelo.enums.Categoria;
-import org.ufla.dcc.naivejudge.modelo.enums.Estado;
+import org.ufla.dcc.naivejudge.domain.problem.Category;
+import org.ufla.dcc.naivejudge.domain.problem.State;
 
 @Entity
-public class UsuarioCatEst implements Serializable {
+public class UserCategoryStatistics implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  private Integer id;
+  private Long id;
 
   @Column(nullable = false)
-  private Integer qtdSubmissoes;
+  private Integer qtySubmissions;
 
   @Column(nullable = false)
-  private Integer qtdProblemasResolvidos;
+  private Integer qtyAcceptedProblems;
 
   @Column(nullable = false)
-  private Integer qtdProblemasTentados;
+  private Integer qtyTryProblems;
 
   @Column(nullable = false)
   @Enumerated(EnumType.ORDINAL)
-  private Categoria categoria;
+  private Category category;
 
   @ManyToOne
   @JoinColumn(nullable = false)
-  private Usuario usuario;
+  private User user;
 
-  public UsuarioCatEst() {
-    this.qtdSubmissoes = 0;
-    this.qtdProblemasResolvidos = 0;
-    this.qtdProblemasTentados = 0;
+  public UserCategoryStatistics() {
+    this.qtySubmissions = 0;
+    this.qtyAcceptedProblems = 0;
+    this.qtyTryProblems = 0;
   }
 
-  public UsuarioCatEst(Integer qtdSubmissoes, Integer qtdProblemasResolvidos,
-      Integer qtdProblemasTentados, Categoria categoria) {
-    this.qtdSubmissoes = qtdSubmissoes;
-    this.qtdProblemasResolvidos = qtdProblemasResolvidos;
-    this.qtdProblemasTentados = qtdProblemasTentados;
-    this.categoria = categoria;
-  }
-
-  public void atualizarSubmissao(boolean novoProblema, boolean naoResolvido, Estado estado) {
-    qtdSubmissoes++;
-    if (novoProblema) {
-      qtdProblemasTentados++;
-    }
-    if (estado.equals(Estado.CORRETO) && naoResolvido) {
-      qtdProblemasResolvidos++;
-    }
-  }
-
-  public Integer getId() {
-    return id;
-  }
-
-  public void setId(Integer id) {
-    this.id = id;
-  }
-
-  public Integer getQtdSubmissoes() {
-    return qtdSubmissoes;
-  }
-
-  public void setQtdSubmissoes(Integer qtdSubmissoes) {
-    this.qtdSubmissoes = qtdSubmissoes;
-  }
-
-  public Integer getQtdProblemasResolvidos() {
-    return qtdProblemasResolvidos;
-  }
-
-  public void setQtdProblemasResolvidos(Integer qtdProblemasResolvidos) {
-    this.qtdProblemasResolvidos = qtdProblemasResolvidos;
-  }
-
-  public Integer getQtdProblemasTentados() {
-    return qtdProblemasTentados;
-  }
-
-  public void setQtdProblemasTentados(Integer qtdProblemasTentados) {
-    this.qtdProblemasTentados = qtdProblemasTentados;
-  }
-
-  public Categoria getCategoria() {
-    return categoria;
-  }
-
-  public void setCategoria(Categoria categoria) {
-    this.categoria = categoria;
-  }
-
-  public Usuario getUsuario() {
-    return usuario;
-  }
-
-  public void setUsuario(Usuario usuario) {
-    this.usuario = usuario;
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((id == null) ? 0 : id.hashCode());
-    return result;
+  public UserCategoryStatistics(Integer qtySubmissions, Integer qtyAcceptedProblems,
+      Integer qtyTryProblems, Category category) {
+    this.qtySubmissions = qtySubmissions;
+    this.qtyAcceptedProblems = qtyAcceptedProblems;
+    this.qtyTryProblems = qtyTryProblems;
+    this.category = category;
   }
 
   @Override
@@ -128,7 +62,7 @@ public class UsuarioCatEst implements Serializable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    UsuarioCatEst other = (UsuarioCatEst) obj;
+    UserCategoryStatistics other = (UserCategoryStatistics) obj;
     if (id == null) {
       if (other.id != null)
         return false;
@@ -137,11 +71,77 @@ public class UsuarioCatEst implements Serializable {
     return true;
   }
 
+  public Category getCategory() {
+    return category;
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public Integer getQtyAcceptedProblems() {
+    return qtyAcceptedProblems;
+  }
+
+  public Integer getQtySubmissions() {
+    return qtySubmissions;
+  }
+
+  public Integer getQtyTryProblems() {
+    return qtyTryProblems;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((id == null) ? 0 : id.hashCode());
+    return result;
+  }
+
+  public void setCategory(Category category) {
+    this.category = category;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public void setQtyAcceptedProblems(Integer qtyAcceptedProblems) {
+    this.qtyAcceptedProblems = qtyAcceptedProblems;
+  }
+
+  public void setQtySubmissions(Integer qtySubmissions) {
+    this.qtySubmissions = qtySubmissions;
+  }
+
+  public void setQtyTryProblems(Integer qtyTryProblems) {
+    this.qtyTryProblems = qtyTryProblems;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
+  }
+
   @Override
   public String toString() {
-    return "UsuarioCategoriaEstatistica [id=" + id + ", qtdSubmissoes=" + qtdSubmissoes
-        + ", qtdProblemasResolvidos=" + qtdProblemasResolvidos + ", qtdProblemasTentados="
-        + qtdProblemasTentados + ", categoria=" + categoria + "]";
+    return "UserCategoryStatistics [id=" + id + ", qtySubmissions=" + qtySubmissions
+        + ", qtyAcceptedProblems=" + qtyAcceptedProblems + ", qtyTryProblems=" + qtyTryProblems
+        + ", category=" + category + "]";
+  }
+
+  public void updateSubmission(boolean newProblem, boolean notAccepted, State state) {
+    qtySubmissions++;
+    if (newProblem) {
+      qtyTryProblems++;
+    }
+    if (state.equals(State.ACCEPTED) && notAccepted) {
+      qtyAcceptedProblems++;
+    }
   }
 
 }

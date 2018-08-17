@@ -1,35 +1,35 @@
-package org.ufla.dcc.naivejudge.modelo.est;
+package org.ufla.dcc.naivejudge.dto;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Progresso implements Serializable {
+public class Progress implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  private Double progressoGeral;
+  private Double generalProgress;
 
-  private List<ProgressoCategoria> progressosCat = new ArrayList<>();
+  private List<CategoryProgress> categoryProgressList = new ArrayList<>();
 
-  public void addProgressoCategoria(ProgressoCategoria progressoCategoria) {
-    progressosCat.add(progressoCategoria);
+  public void addCategoryProgress(CategoryProgress categoryProgress) {
+    categoryProgressList.add(categoryProgress);
   }
 
-  public Double getProgressoGeral() {
-    return progressoGeral;
+  public List<CategoryProgress> getCategoryProgressList() {
+    return categoryProgressList;
   }
 
-  public List<ProgressoCategoria> getProgressosCat() {
-    return progressosCat;
+  public Double getGeneralProgress() {
+    return generalProgress;
   }
 
-  public void setProgressoGeral(Double progressoGeral) {
-    this.progressoGeral = progressoGeral;
+  public void setCategoryProgressList(List<CategoryProgress> categoryProgressList) {
+    this.categoryProgressList = categoryProgressList;
   }
 
-  public void setProgressosCat(List<ProgressoCategoria> progressosCat) {
-    this.progressosCat = progressosCat;
+  public void setGeneralProgress(Double generalProgress) {
+    this.generalProgress = generalProgress;
   }
 
 }

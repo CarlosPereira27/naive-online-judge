@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.problema;
+package org.ufla.dcc.naivejudge.domain.problem;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -12,48 +12,47 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import org.ufla.dcc.naivejudge.modelo.enums.Linguagem;
 
 @Entity
-public class AvaliacaoProblema implements Serializable {
+public class ProblemJudge implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  private Integer id;
+  private Long id;
 
-  @OneToOne(mappedBy = "avaliacao")
-  private Problema problema;
+  @OneToOne(mappedBy = "judge")
+  private Problem problem;
 
   @Column(nullable = false)
   @Enumerated(EnumType.ORDINAL)
-  private Linguagem linguagemImplementacao;
+  private ProgrammingLanguage implementationLanguage;
 
   @Column(nullable = false)
-  private String implementacao;
+  private String implementation;
 
   @Column
   @Enumerated(EnumType.ORDINAL)
-  private Linguagem linguagemGeradorDeEntradas;
+  private ProgrammingLanguage inputGeneratorLanguage;
 
-  @Column()
-  private String geradorDeEntradas;
+  @Column
+  private String inputGenerator;
 
-  @OneToMany(mappedBy = "avalicao")
-  private List<InstanciaProblema> instancias;
+  @OneToMany(mappedBy = "judge")
+  private List<ProblemInstance> instances;
 
-  public AvaliacaoProblema() {
-    instancias = new ArrayList<>();
+  public ProblemJudge() {
+    instances = new ArrayList<>();
   }
 
-  public AvaliacaoProblema(Problema problema, Linguagem linguagemImplementacao,
-      String implementacao) {
-    this.problema = problema;
-    this.linguagemImplementacao = linguagemImplementacao;
-    this.implementacao = implementacao;
-    instancias = new ArrayList<>();
+  public ProblemJudge(Problem problem, ProgrammingLanguage implementationLanguage,
+      String implementation) {
+    this.problem = problem;
+    this.implementationLanguage = implementationLanguage;
+    this.implementation = implementation;
+    instances = new ArrayList<>();
   }
 
   @Override
@@ -64,7 +63,7 @@ public class AvaliacaoProblema implements Serializable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    AvaliacaoProblema other = (AvaliacaoProblema) obj;
+    ProblemJudge other = (ProblemJudge) obj;
     if (id == null) {
       if (other.id != null)
         return false;
@@ -73,32 +72,32 @@ public class AvaliacaoProblema implements Serializable {
     return true;
   }
 
-  public String getGeradorDeEntradas() {
-    return geradorDeEntradas;
-  }
-
-  public Integer getId() {
+  public Long getId() {
     return id;
   }
 
-  public String getImplementacao() {
-    return implementacao;
+  public String getImplementation() {
+    return implementation;
   }
 
-  public List<InstanciaProblema> getInstancias() {
-    return instancias;
+  public ProgrammingLanguage getImplementationLanguage() {
+    return implementationLanguage;
   }
 
-  public Linguagem getLinguagemGeradorDeEntradas() {
-    return linguagemGeradorDeEntradas;
+  public String getInputGenerator() {
+    return inputGenerator;
   }
 
-  public Linguagem getLinguagemImplementacao() {
-    return linguagemImplementacao;
+  public ProgrammingLanguage getInputGeneratorLanguage() {
+    return inputGeneratorLanguage;
   }
 
-  public Problema getProblema() {
-    return problema;
+  public List<ProblemInstance> getInstances() {
+    return instances;
+  }
+
+  public Problem getProblem() {
+    return problem;
   }
 
   @Override
@@ -109,40 +108,40 @@ public class AvaliacaoProblema implements Serializable {
     return result;
   }
 
-  public void setGeradorDeEntradas(String geradorDeEntradas) {
-    this.geradorDeEntradas = geradorDeEntradas;
-  }
-
-  public void setId(Integer id) {
+  public void setId(Long id) {
     this.id = id;
   }
 
-  public void setImplementacao(String implementacao) {
-    this.implementacao = implementacao;
+  public void setImplementation(String implementation) {
+    this.implementation = implementation;
   }
 
-  public void setInstancias(List<InstanciaProblema> instancias) {
-    this.instancias = instancias;
+  public void setImplementationLanguage(ProgrammingLanguage implementationLanguage) {
+    this.implementationLanguage = implementationLanguage;
   }
 
-  public void setLinguagemGeradorDeEntradas(Linguagem linguagemGeradorDeEntradas) {
-    this.linguagemGeradorDeEntradas = linguagemGeradorDeEntradas;
+  public void setInputGeneratorDeEntradas(String inputGenerator) {
+    this.inputGenerator = inputGenerator;
   }
 
-  public void setLinguagemImplementacao(Linguagem linguagemImplementacao) {
-    this.linguagemImplementacao = linguagemImplementacao;
+  public void setInputGeneratorLanguage(ProgrammingLanguage inputGeneratorLanguage) {
+    this.inputGeneratorLanguage = inputGeneratorLanguage;
   }
 
-  public void setProblema(Problema problema) {
-    this.problema = problema;
+  public void setInstances(List<ProblemInstance> instances) {
+    this.instances = instances;
+  }
+
+  public void setProblem(Problem problem) {
+    this.problem = problem;
   }
 
   @Override
   public String toString() {
-    return "AvaliacaoProblema [id=" + id + ", linguagemImplementacao=" + linguagemImplementacao
-        + ", implementacao=" + implementacao + ", linguagemGeradorDeEntradas="
-        + linguagemGeradorDeEntradas + ", geradorDeEntradas=" + geradorDeEntradas + ", instancias="
-        + instancias + "]";
+    return "ProblemJudge [id=" + id + ", implementationLanguage=" + implementationLanguage
+        + ", implementation=" + implementation + ", inputGeneratorLanguage="
+        + inputGeneratorLanguage + ", inputGenerator=" + inputGenerator + ", instances=" + instances
+        + "]";
   }
 
 }

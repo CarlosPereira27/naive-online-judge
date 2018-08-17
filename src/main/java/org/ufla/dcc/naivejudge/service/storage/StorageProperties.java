@@ -1,28 +1,28 @@
-package org.ufla.dcc.naivejudge.servico.armazenamento;
+package org.ufla.dcc.naivejudge.service.storage;
 
 import java.io.Serializable;
 
-public class PropriedadesArmazenamento implements Serializable {
+public class StorageProperties implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  private static PropriedadesArmazenamento propriedadesArmazenamento;
+  private static StorageProperties storageProperties;
 
-  public static PropriedadesArmazenamento getInstance() {
-    if (propriedadesArmazenamento == null) {
-      propriedadesArmazenamento = new PropriedadesArmazenamento();
+  public static StorageProperties getInstance() {
+    if (storageProperties == null) {
+      storageProperties = new StorageProperties();
     }
-    return propriedadesArmazenamento;
+    return storageProperties;
   }
 
-  private String diretorio = "upload-dir";
+  private String folder = ".upload-folder";
 
-  public String getDiretorio() {
-    return diretorio;
+  public String getFolder() {
+    return folder;
   }
 
-  public void setDiretorio(String diretorio) {
-    this.diretorio = diretorio;
+  public void setFolder(String folder) {
+    this.folder = folder;
   }
 
 }

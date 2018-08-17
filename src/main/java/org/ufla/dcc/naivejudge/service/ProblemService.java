@@ -1,21 +1,21 @@
-package org.ufla.dcc.naivejudge.servico;
+package org.ufla.dcc.naivejudge.service;
 
 import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
-import org.ufla.dcc.naivejudge.modelo.enums.Categoria;
-import org.ufla.dcc.naivejudge.modelo.problema.Problema;
-import org.ufla.dcc.naivejudge.modelo.problema.Submissao;
+import org.ufla.dcc.naivejudge.domain.problem.Category;
+import org.ufla.dcc.naivejudge.domain.problem.Problem;
+import org.ufla.dcc.naivejudge.domain.problem.Submission;
 
-public interface ProblemaService {
+public interface ProblemService {
 
-  void cadastrarProblema(Problema problema, MultipartFile[] arqTestes, MultipartFile arqImpl);
+  Problem getProblem(Long id);
 
-  Problema getProblema(Integer problemaId);
+  List<Problem> getProblems();
 
-  List<Problema> getProblemas();
+  List<Problem> getProblems(Category category);
 
-  List<Problema> getProblemas(Categoria categoria);
+  void processSubmission(Submission submission);
 
-  void processarSubmissao(Submissao submissao);
+  void save(Problem problem, MultipartFile[] testFiles, MultipartFile implementationFile);
 
 }

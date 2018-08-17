@@ -1,82 +1,82 @@
-package org.ufla.dcc.naivejudge.servico;
+package org.ufla.dcc.naivejudge.service;
 
 import java.util.List;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.ufla.dcc.naivejudge.modelo.est.ProgressoUsuario;
-import org.ufla.dcc.naivejudge.modelo.problema.CategoriaEstatisticas;
-import org.ufla.dcc.naivejudge.modelo.usuario.Login;
-import org.ufla.dcc.naivejudge.modelo.usuario.Universidade;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
-import org.ufla.dcc.naivejudge.repositorio.ProblemaDao;
-import org.ufla.dcc.naivejudge.repositorio.UniversidadeDao;
-import org.ufla.dcc.naivejudge.repositorio.UsuarioDao;
+import org.ufla.dcc.naivejudge.domain.problem.CategoryStatistics;
+import org.ufla.dcc.naivejudge.domain.user.University;
+import org.ufla.dcc.naivejudge.domain.user.User;
+import org.ufla.dcc.naivejudge.dto.Login;
+import org.ufla.dcc.naivejudge.dto.UserProgress;
+import org.ufla.dcc.naivejudge.repository.ProblemRepository;
+import org.ufla.dcc.naivejudge.repository.UniversityRepository;
+import org.ufla.dcc.naivejudge.repository.UserRepository;
 
 @Service
-public class UsuarioServiceImpl implements UsuarioService {
+public class UserServiceImpl implements UserService {
 
   @Autowired
-  private UsuarioDao usuarioDao;
+  private UserRepository userRepository;
 
   @Autowired
-  private UniversidadeDao universidadeDao;
+  private UniversityRepository universityRepository;
 
   @Autowired
-  private ProblemaDao problemaDao;
+  private ProblemRepository problemRepository;
 
   @Override
   @Transactional
-  public boolean atualizar(Usuario usuario) {
-    Universidade universidade = universidadeDao.getUniversidade(usuario.getUniversidade().getId());
-    usuario.setUniversidade(universidade);
-    return usuarioDao.atualizar(usuario);
+  public List<User> getTopUsers() {
+    return userRepository.getUsers(20);
   }
 
   @Override
   @Transactional
-  public Usuario getUsuario(Integer id) {
-    return usuarioDao.getUsuario(id);
+  public User getUser(Long id) {
+    return userRepository.getUser(id);
   }
 
   @Override
   @Transactional
-  public ProgressoUsuario getUsuarioEstatistica(Integer id) {
-    ProgressoUsuario progressoUsuario = new ProgressoUsuario();
-    Usuario usuario = usuarioDao.getUsuario(id);
-    if (usuario == null) {
+  public UserProgress getUserProgress(Long id) {
+    UserProgress userProgress = new UserProgress();
+    User user = userRepository.getUser(id);
+    if (user == null) {
       return null;
     }
-    progressoUsuario.setUsuario(usuario);
-    progressoUsuario.setUsuariosTop(usuarioDao.getUsuarios(20));
-    List<CategoriaEstatisticas> categoriasEst = problemaDao.getCategoriasEst();
-    progressoUsuario.setProgresso(usuarioDao.getUsuarioProgesso(usuario, categoriasEst));
-    return progressoUsuario;
+    userProgress.setUser(user);
+    userProgress.setTopUsers(userRepository.getUsers(20));
+    List<CategoryStatistics> categoryStatistics = problemRepository.getCategoryStatistics();
+    userProgress.setProgress(userRepository.getUserProgess(user, categoryStatistics));
+    return userProgress;
   }
 
   @Override
   @Transactional
-  public List<Usuario> getUsuarios() {
-    return usuarioDao.getUsuarios();
+  public List<User> getUsers() {
+    return userRepository.getUsers();
   }
 
   @Override
   @Transactional
-  public List<Usuario> getUsuariosTop() {
-    return usuarioDao.getUsuarios(20);
+  public boolean save(User user) {
+    return userRepository.save(user);
   }
 
   @Override
   @Transactional
-  public boolean registrar(Usuario usuario) {
-    return usuarioDao.registrar(usuario);
+  public boolean update(User user) {
+    University university = universityRepository.getUniversity(user.getUniversity().getId());
+    user.setUniversity(university);
+    return userRepository.update(user);
   }
 
   @Override
   @Transactional
-  public Usuario validarUsario(Login login) {
-    Usuario usuario = usuarioDao.validarUsario(login);
-    return usuario;
+  public User validateUser(Login login) {
+    User user = userRepository.validateUser(login);
+    return user;
   }
 
 }

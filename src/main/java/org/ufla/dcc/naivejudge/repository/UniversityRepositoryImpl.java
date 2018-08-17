@@ -1,87 +1,80 @@
-package org.ufla.dcc.naivejudge.repositorio;
+package org.ufla.dcc.naivejudge.repository;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.ufla.dcc.naivejudge.modelo.usuario.Universidade;
-import org.ufla.dcc.naivejudge.modelo.usuario.Universidade_;
+import org.ufla.dcc.naivejudge.domain.user.University;
+import org.ufla.dcc.naivejudge.domain.user.University_;
 
 @Repository
-public class UniversidadeDaoImpl implements UniversidadeDao {
+public class UniversityRepositoryImpl implements UniversityRepository {
 
-  private SessionFactory sessionFactory;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Autowired
-  public UniversidadeDaoImpl(EntityManagerFactory entityManagerFactory) {
-    sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-  }
+  public UniversityRepositoryImpl() {}
 
   @Override
-  public Universidade getUniversidade(Integer id) {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Universidade> query = builder.createQuery(Universidade.class);
-    Root<Universidade> root = query.from(Universidade.class);
-    query.select(root).where(builder.equal(root.get(Universidade_.id), id));
-
-    try {
-      return sessao.createQuery(query).getSingleResult();
-    } catch (NoResultException e) {
-      return null;
-    }
-  }
-
-  @Override
-  public Universidade getUniversidade(String nome) {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Universidade> query = builder.createQuery(Universidade.class);
-    Root<Universidade> root = query.from(Universidade.class);
-    query.select(root).where(builder.equal(root.get(Universidade_.nome), nome));
-
-    try {
-      return sessao.createQuery(query).getSingleResult();
-    } catch (NoResultException e) {
-      return null;
-    }
-  }
-
-  @Override
-  public List<Universidade> getUniversidades() {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    // SELECT * FROM Universidade
-    // ORDER BY qtdProblemasResolvidos DESC, qtdEstudantes DESC;
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Universidade> query = builder.createQuery(Universidade.class);
-    Root<Universidade> root = query.from(Universidade.class);
+  public List<University> getUniversities() {
+    Session session = entityManager.unwrap(Session.class);
+    // SELECT * FROM University
+    // ORDER BY qtyAcceptedProblems DESC, qtyStudents DESC;
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<University> query = builder.createQuery(University.class);
+    Root<University> root = query.from(University.class);
     List<Order> orderList = new ArrayList<>();
-    orderList.add(builder.desc(root.get(Universidade_.qtdProblemasResolvidos)));
-    orderList.add(builder.desc(root.get(Universidade_.qtdEstudantes)));
+    orderList.add(builder.desc(root.get(University_.qtyAcceptedProblems)));
+    orderList.add(builder.desc(root.get(University_.qtyStudents)));
     query.select(root).orderBy(orderList);
-
-    return sessao.createQuery(query).getResultList();
+    return session.createQuery(query).getResultList();
   }
 
   @Override
-  public boolean registrar(Universidade universidade) {
-    Session sessao = sessionFactory.getCurrentSession();
-    Universidade universidadeNome = getUniversidade(universidade.getNome());
+  public University getUniversity(Long id) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<University> query = builder.createQuery(University.class);
+    Root<University> root = query.from(University.class);
+    query.select(root).where(builder.equal(root.get(University_.id), id));
+    try {
+      return session.createQuery(query).getSingleResult();
+    } catch (NoResultException e) {
+      return null;
+    }
+  }
+
+  @Override
+  public University getUniversity(String name) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<University> query = builder.createQuery(University.class);
+    Root<University> root = query.from(University.class);
+    query.select(root).where(builder.equal(root.get(University_.name), name));
+    try {
+      return session.createQuery(query).getSingleResult();
+    } catch (NoResultException e) {
+      return null;
+    }
+  }
+
+  @Override
+  public boolean saveUniversity(University university) {
+    Session session = entityManager.unwrap(Session.class);
+    University universidadeNome = getUniversity(university.getName());
     if (universidadeNome != null) {
       return false;
     }
-    sessao.save(universidade);
+    session.save(university);
     return true;
   }
 

@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.forum;
+package org.ufla.dcc.naivejudge.domain.forum;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -11,42 +11,42 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
+import org.ufla.dcc.naivejudge.domain.user.User;
 
 @Entity
-public class ForumMensagem implements Serializable {
+public class Post implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  private Integer id;
+  private Long id;
 
   @ManyToOne
   @JoinColumn(nullable = false)
-  private Usuario autor;
+  private User author;
 
   @Column(columnDefinition = "text", nullable = false)
-  private String texto;
+  private String content;
 
   @Column(nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
-  private Date dataEnvio;
+  private Date createdAt;
 
   @ManyToOne
   @JoinColumn(nullable = false)
   private Forum forum;
 
-  public ForumMensagem() {
-    inicializar();
+  public Post() {
+    init();
   }
 
-  public ForumMensagem(Usuario autor, String texto, Forum forum) {
-    this.autor = autor;
-    this.texto = texto;
+  public Post(User author, String content, Forum forum) {
+    this.author = author;
+    this.content = content;
     this.forum = forum;
-    inicializar();
+    init();
   }
 
   @Override
@@ -57,7 +57,7 @@ public class ForumMensagem implements Serializable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    ForumMensagem other = (ForumMensagem) obj;
+    Post other = (Post) obj;
     if (id == null) {
       if (other.id != null)
         return false;
@@ -66,24 +66,24 @@ public class ForumMensagem implements Serializable {
     return true;
   }
 
-  public Usuario getAutor() {
-    return autor;
+  public User getAuthor() {
+    return author;
   }
 
-  public Date getDataEnvio() {
-    return dataEnvio;
+  public String getContent() {
+    return content;
+  }
+
+  public Date getCreatedAt() {
+    return createdAt;
   }
 
   public Forum getForum() {
     return forum;
   }
 
-  public Integer getId() {
+  public Long getId() {
     return id;
-  }
-
-  public String getTexto() {
-    return texto;
   }
 
   @Override
@@ -94,34 +94,34 @@ public class ForumMensagem implements Serializable {
     return result;
   }
 
-  public void setAutor(Usuario autor) {
-    this.autor = autor;
+  private void init() {
+    this.createdAt = new Date();
   }
 
-  public void setDataEnvio(Date dataEnvio) {
-    this.dataEnvio = dataEnvio;
+  public void setAuthor(User author) {
+    this.author = author;
+  }
+
+  public void setContent(String content) {
+    this.content = content;
+  }
+
+  public void setCreatedAt(Date createdAt) {
+    this.createdAt = createdAt;
   }
 
   public void setForum(Forum forum) {
     this.forum = forum;
   }
 
-  public void setId(Integer id) {
+  public void setId(Long id) {
     this.id = id;
-  }
-
-  public void setTexto(String texto) {
-    this.texto = texto;
   }
 
   @Override
   public String toString() {
-    return "ForumMensagem [id=" + id + ", autor=" + autor + ", texto=" + texto + ", dataEnvio="
-        + dataEnvio + ", forum=" + forum + "]";
-  }
-
-  private void inicializar() {
-    this.dataEnvio = new Date();
+    return "Post [id=" + id + ", author=" + author + ", content=" + content + ", createdAt="
+        + createdAt + ", forum=" + forum + "]";
   }
 
 }

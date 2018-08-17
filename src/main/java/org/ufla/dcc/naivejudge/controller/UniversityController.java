@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.controlador;
+package org.ufla.dcc.naivejudge.controller;
 
 import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,59 +9,54 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.ufla.dcc.naivejudge.modelo.usuario.Universidade;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
-import org.ufla.dcc.naivejudge.servico.UniversidadeService;
+import org.ufla.dcc.naivejudge.domain.user.University;
+import org.ufla.dcc.naivejudge.domain.user.User;
+import org.ufla.dcc.naivejudge.dto.AlertType;
+import org.ufla.dcc.naivejudge.dto.Message;
+import org.ufla.dcc.naivejudge.service.UniversityService;
 
 @Controller
-@RequestMapping("/universidade")
-public class UniversidadeController {
+@RequestMapping("/university")
+public class UniversityController {
 
-  // need to inject the customer service
   @Autowired
-  private UniversidadeService universidadeService;
+  private UniversityService universityService;
 
   @GetMapping("/rank")
-  public String rank(Model theModel, HttpSession session) {
-    if (session.getAttribute("usuario") == null) {
-      return "redirect:/usuario/login";
-    }
-    theModel.addAttribute("universidades", universidadeService.universidades());
-
-    return "universidades";
+  public String getRank(Model model) {
+    model.addAttribute("universities", universityService.getUniversities());
+    return "university/rank-universities";
   }
 
-  @GetMapping("/registrar")
-  public String registrarGet(Model theModel,
-      @ModelAttribute("universidade") Universidade universidade,
-      @ModelAttribute("mensagem") Mensagem mensagem, HttpSession session) {
-    if (session.getAttribute("usuario") == null) {
-      return "redirect:/usuario/login";
-    }
-    if (mensagem.isNull()) {
-      theModel.addAttribute("mensagem", null);
-    }
-
-    return "registrarUniversidade";
-  }
-
-  @PostMapping("/registrar")
-  public String registrarPost(Model theModel,
-      @ModelAttribute("universidade") Universidade universidade, RedirectAttributes attributes,
+  @GetMapping("/register")
+  public String getRegister(Model model, @ModelAttribute("university") University university,
+      @ModelAttribute("message") Message message, RedirectAttributes attributes,
       HttpSession session) {
-    Usuario usuario = (Usuario) session.getAttribute("usuario");
-    if (usuario == null) {
-      return "redirect:/usuario/login";
+    if (AuthUtils.authenticateUser(attributes, session, "cadastrar uma universidade") == null) {
+      return "redirect:/user/home";
     }
-    if (universidadeService.registrar(universidade)) {
-      attributes.addFlashAttribute("mensagem",
-          new Mensagem("Universidade cadastrada com sucesso!", TipoDeAlerta.SUCCESS));
-      return "redirect:/usuario/configuracoes";
+    if (message.isNull()) {
+      model.addAttribute("message", null);
     }
-    attributes.addFlashAttribute("mensagem",
-        new Mensagem("Universidade com mesmo nome já cadastrada!", TipoDeAlerta.DANGER));
-    attributes.addFlashAttribute("universidade", universidade);
-    return "redirect:/universidade/registrar";
+    return "university/register-university";
+  }
+
+  @PostMapping("/register")
+  public String postRegister(Model model, @ModelAttribute("university") University university,
+      RedirectAttributes attributes, HttpSession session) {
+    User user = AuthUtils.authenticateUser(attributes, session, "cadastrar uma universidade");
+    if (user == null) {
+      return "redirect:/user/home";
+    }
+    if (universityService.save(university)) {
+      attributes.addFlashAttribute("message",
+          new Message("Universidade cadastrada com sucesso!", AlertType.SUCCESS));
+      return "redirect:/user/configurations";
+    }
+    attributes.addFlashAttribute("message",
+        new Message("Universidade com mesmo nome já cadastrada!", AlertType.DANGER));
+    attributes.addFlashAttribute("university", university);
+    return "redirect:/university/register";
   }
 
 }

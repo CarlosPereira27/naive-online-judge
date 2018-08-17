@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.servico;
+package org.ufla.dcc.naivejudge.service;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -20,36 +20,41 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.ufla.dcc.naivejudge.modelo.enums.Categoria;
-import org.ufla.dcc.naivejudge.modelo.enums.Estado;
-import org.ufla.dcc.naivejudge.modelo.problema.AvaliacaoProblema;
-import org.ufla.dcc.naivejudge.modelo.problema.InstanciaProblema;
-import org.ufla.dcc.naivejudge.modelo.problema.Problema;
-import org.ufla.dcc.naivejudge.modelo.problema.Submissao;
-import org.ufla.dcc.naivejudge.repositorio.ProblemaDao;
-import org.ufla.dcc.naivejudge.repositorio.SubmissaoDao;
-import org.ufla.dcc.naivejudge.repositorio.UsuarioDao;
-import org.ufla.dcc.naivejudge.servico.armazenamento.ArmazenamentoDeArquivoService;
-import org.ufla.dcc.naivejudge.servico.armazenamento.ArmazenamentoService;
+import org.ufla.dcc.naivejudge.domain.problem.ProblemJudge;
+import org.ufla.dcc.naivejudge.domain.problem.State;
+import org.ufla.dcc.naivejudge.domain.problem.ProblemInstance;
+import org.ufla.dcc.naivejudge.domain.problem.Category;
+import org.ufla.dcc.naivejudge.domain.problem.Problem;
+import org.ufla.dcc.naivejudge.domain.problem.Submission;
+import org.ufla.dcc.naivejudge.repository.ProblemRepository;
+import org.ufla.dcc.naivejudge.repository.SubmissionRepository;
+import org.ufla.dcc.naivejudge.repository.UserRepository;
+import org.ufla.dcc.naivejudge.service.storage.FileStorageService;
+import org.ufla.dcc.naivejudge.service.storage.StorageService;
 
 @Service
-public class ProblemaServiceImpl implements ProblemaService {
+public class ProblemServiceImpl implements ProblemService {
 
-  class InstanciaTeste implements Comparable<InstanciaTeste> {
+  class PairLong {
+    public long first = 0;
+    public long second = 0;
+  }
 
-    String nome;
-    boolean entrada;
-    boolean solucao;
+  class TestInstance implements Comparable<TestInstance> {
 
-    public InstanciaTeste(String nome) {
-      this.nome = nome;
-      entrada = false;
-      solucao = false;
+    String name;
+    boolean input;
+    boolean solution;
+
+    public TestInstance(String name) {
+      this.name = name;
+      input = false;
+      solution = false;
     }
 
     @Override
-    public int compareTo(InstanciaTeste o) {
-      return nome.compareTo(o.nome);
+    public int compareTo(TestInstance o) {
+      return name.compareTo(o.name);
     }
 
     @Override
@@ -60,16 +65,27 @@ public class ProblemaServiceImpl implements ProblemaService {
         return false;
       if (getClass() != obj.getClass())
         return false;
-      InstanciaTeste other = (InstanciaTeste) obj;
+      TestInstance other = (TestInstance) obj;
       if (!getOuterType().equals(other.getOuterType()))
         return false;
-      if (entrada != other.entrada)
+      if (input != other.input)
         return false;
       return true;
     }
 
-    public String getUnicoArquivo() {
-      return nome + "." + getUnicaExtensao();
+    private ProblemServiceImpl getOuterType() {
+      return ProblemServiceImpl.this;
+    }
+
+    private String getUniqueExtension() {
+      if (input) {
+        return INPUT_EXTENSION;
+      }
+      return SOLUTION_EXTENSION;
+    }
+
+    public String getUniqueFile() {
+      return name + "." + getUniqueExtension();
     }
 
     @Override
@@ -77,210 +93,104 @@ public class ProblemaServiceImpl implements ProblemaService {
       final int prime = 31;
       int result = 1;
       result = prime * result + getOuterType().hashCode();
-      result = prime * result + (entrada ? 1231 : 1237);
+      result = prime * result + (input ? 1231 : 1237);
       return result;
     }
 
-    public boolean soTemUmArquivo() {
-      return !(entrada && solucao);
-    }
-
-    private ProblemaServiceImpl getOuterType() {
-      return ProblemaServiceImpl.this;
-    }
-
-    private String getUnicaExtensao() {
-      if (entrada) {
-        return EXTENSAO_ENTRADA;
-      }
-      return EXTENSAO_SOLUCAO;
+    public boolean hasOnlyOneFile() {
+      return !(input && solution);
     }
 
   }
 
-  class ParLong {
-    public long primeiro = 0;
-    public long segundo = 0;
-  }
+  private static final String SOLUTION_EXTENSION = "sol";
 
-  private static final String EXTENSAO_SOLUCAO = "sol";
+  private static final String INPUT_EXTENSION = "in";
 
-  private static final String EXTENSAO_ENTRADA = "in";
-
-  private static final String EXTENSAO_SAIDA = "out";
-  // private static final String EXTENSAO_JAVA = "java";
-  // private static final String ARQUIVO_PADRAO_JAVA = "Main.java";
+  private static final String OUTPUT_EXTENSION = "out";
+  // private static final String JAVA_EXTENSION = "java";
+  // private static final String JAVA_DEFAULT_FILE = "Main.java";
 
   @Autowired
-  ProblemaDao problemaDao;
+  private ProblemRepository problemRepository;
 
   @Autowired
-  UsuarioDao usuarioDao;
+  private UserRepository userRepository;
+
   @Autowired
-  SubmissaoDao submissaoDao;
+  private SubmissionRepository submissionRepository;
+
   @Autowired
-  ArmazenamentoService armazenamentoService;
+  private StorageService storageService;
 
-  private boolean malFormatado;
+  private boolean presentationError;
 
-  @Override
-  @Transactional
-  public void cadastrarProblema(Problema problema, MultipartFile[] arqTestes,
-      MultipartFile arqImpl) {
-    problema.setEstatisticas(problemaDao.createProblemaEstatistica());
-    problema.setForum(problemaDao.createAForum());
-    AvaliacaoProblema avaliacaoProblema = problema.getAvaliacao();
-    avaliacaoProblema.setImplementacao(arqImpl.getOriginalFilename());
-    problemaDao.saveAvaliacaoProblema(avaliacaoProblema);
-    problemaDao.criarInstancias(avaliacaoProblema, extrairNomesDeTestes(arqTestes));
-    problemaDao.createProblema(problema);
-    String diretorio = ArmazenamentoDeArquivoService.DIRETORIO_RAIZ + "problema_"
-        + String.valueOf(problema.getId());
-    File diretorioFile = new File(diretorio);
-    if (!diretorioFile.exists()) {
-      diretorioFile.mkdirs();
+  private SortedSet<String> convertTestInstance(Map<String, TestInstance> testInstances) {
+    SortedSet<String> testNames = new TreeSet<>();
+    for (TestInstance testInstance : testInstances.values()) {
+      testNames.add(testInstance.name);
     }
-    armazenamentoService.armazenar(arqImpl, diretorio);
-    for (MultipartFile arqTeste : arqTestes) {
-      armazenamentoService.armazenar(arqTeste, diretorio);
-    }
-    try {
-      Runtime.getRuntime().exec("javac " + diretorio + "/" + arqImpl.getOriginalFilename());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    return testNames;
   }
 
-  @Override
-  @Transactional
-  public Problema getProblema(Integer problemaId) {
-    return problemaDao.getProblema(problemaId);
-  }
-
-  @Override
-  @Transactional
-  public List<Problema> getProblemas() {
-    return problemaDao.getProblemas();
-  }
-
-  @Override
-  @Transactional
-  public List<Problema> getProblemas(Categoria categoria) {
-    return problemaDao.getProblemas(categoria);
-  }
-
-  @Override
-  @Transactional
-  public void processarSubmissao(Submissao submissao) {
-    AvaliacaoProblema avaliacao = problemaDao.carregarAvaliacao(submissao.getProblema());
-    List<Submissao> submissoesProblema =
-        submissaoDao.getSubmissoes(submissao.getAutor(), submissao.getProblema());
-    boolean novoProblema = submissoesProblema.isEmpty();
-    boolean naoResolvido = !resolvido(submissoesProblema);
-    String local = ArmazenamentoDeArquivoService.DIRETORIO_RAIZ + "submissao_"
-        + String.valueOf(submissao.getAutor().getId());
-    File diretorio = new File(local);
-    System.out.println("diretó");
-    if (!diretorio.exists()) {
-      diretorio.mkdirs();
-    }
-    File arquivo = new File(local + "/Main.java");
-    if (arquivo.exists()) {
-      arquivo.delete();
-    }
-    Process process = null;
-    try {
-      arquivo.createNewFile();
-      BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(arquivo));
-      bufferedWriter.write(submissao.getImplementacao());
-      bufferedWriter.close();
-      process = Runtime.getRuntime().exec("javac " + arquivo.getAbsolutePath());
-      process.waitFor();
-    } catch (IOException e) {
-      System.out.println("---CARLOS_EXCEPTION---");
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    } catch (InterruptedException e) {
-      System.out.println("---CARLOS_EXCEPTION---");
-      e.printStackTrace();
-    }
-    if (process.exitValue() != 0) {
-      submissao.setMensagem(getMensagem(process.getErrorStream()));
-      submissao.setEstado(Estado.ERRO_DE_COMPILACAO);
-    } else {
-      validarResultados(submissao, avaliacao, local);
-    }
-    submissaoDao.salvarOuAtualizarSubmissao(submissao);
-    usuarioDao.atualizarEstatisticas(submissao, novoProblema, naoResolvido);
-    problemaDao.atualizarEstatisticas(submissao.getProblema(), naoResolvido, submissao.getEstado());
-  }
-
-  private SortedSet<String> converteInstanciaTeste(Map<String, InstanciaTeste> instanciasTeste) {
-    SortedSet<String> nomesTestes = new TreeSet<>();
-    for (InstanciaTeste instanciaTeste : instanciasTeste.values()) {
-      nomesTestes.add(instanciaTeste.nome);
-    }
-    return nomesTestes;
-  }
-
-  private SortedSet<String> extrairNomesDeTestes(MultipartFile[] arqTestes) {
-    Map<String, InstanciaTeste> instanciasTeste = new TreeMap<>();
-    Set<String> arquivosErrados = new TreeSet<>();
-    for (MultipartFile arq : arqTestes) {
-      String[] arraySplit = arq.getOriginalFilename().split("\\.");
-      if (arraySplit.length != 2 || !isEntradaOuSaida(arraySplit[1])) {
-        arquivosErrados.add(arq.getOriginalFilename());
+  private SortedSet<String> extractTestNames(MultipartFile[] testFiles) {
+    Map<String, TestInstance> testInstances = new TreeMap<>();
+    Set<String> wrongFiles = new TreeSet<>();
+    for (MultipartFile file : testFiles) {
+      String[] arraySplit = file.getOriginalFilename().split("\\.");
+      if (arraySplit.length != 2 || !isInputOrOutput(arraySplit[1])) {
+        wrongFiles.add(file.getOriginalFilename());
         continue;
       }
-      InstanciaTeste instanciaTeste =
-          instanciasTeste.getOrDefault(arraySplit[0], new InstanciaTeste(arraySplit[0]));
-      if ((instanciaTeste.entrada && arraySplit[1].equals(EXTENSAO_ENTRADA))
-          || (instanciaTeste.solucao && arraySplit[1].equals(EXTENSAO_SAIDA))) {
+      TestInstance testInstance =
+          testInstances.getOrDefault(arraySplit[0], new TestInstance(arraySplit[0]));
+      if ((testInstance.input && arraySplit[1].equals(INPUT_EXTENSION))
+          || (testInstance.solution && arraySplit[1].equals(OUTPUT_EXTENSION))) {
         throw new RuntimeException(
-            "Erro! Arquivo de teste duplicado " + arq.getOriginalFilename() + "!");
+            "Erro! Arquivo de teste duplicado " + file.getOriginalFilename() + "!");
       }
-      if (arraySplit[1].equals(EXTENSAO_ENTRADA)) {
-        instanciaTeste.entrada = true;
+      if (arraySplit[1].equals(INPUT_EXTENSION)) {
+        testInstance.input = true;
       } else {
-        instanciaTeste.solucao = true;
+        testInstance.solution = true;
       }
-      instanciasTeste.put(arraySplit[0], instanciaTeste);
+      testInstances.put(arraySplit[0], testInstance);
     }
-    StringBuilder mensagemErro = new StringBuilder();
-    if (temErro(instanciasTeste)) {
-      mensagemErro.append(getMensagemErro(instanciasTeste));
+    StringBuilder errorMessage = new StringBuilder();
+    if (hasError(testInstances)) {
+      errorMessage.append(getErrorMessage(testInstances));
     }
-    if (!arquivosErrados.isEmpty()) {
-      mensagemErro.append(getMensagemErroArquivosErrados(arquivosErrados));
+    if (!wrongFiles.isEmpty()) {
+      errorMessage.append(getErrorMessage(wrongFiles));
     }
-    if (mensagemErro.length() > 0) {
-      throw new RuntimeException("Erro nos arquivos de teste!<br>" + mensagemErro.toString());
+    if (errorMessage.length() > 0) {
+      throw new RuntimeException("Erro nos arquivos de teste!<br>" + errorMessage.toString());
     }
-    return converteInstanciaTeste(instanciasTeste);
+    return convertTestInstance(testInstances);
   }
 
-  private String getMensagem(InputStream input) {
+  private String getMessage(InputStream input) {
     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(input));
-    StringBuilder mensagemDeErro = new StringBuilder();
-    String linha;
+    StringBuilder errorMessage = new StringBuilder();
+    String line;
     try {
-      while ((linha = bufferedReader.readLine()) != null) {
-        mensagemDeErro.append(linha).append('\n');
+      while ((line = bufferedReader.readLine()) != null) {
+        errorMessage.append(line).append('\n');
       }
       bufferedReader.close();
     } catch (IOException e1) {
       e1.printStackTrace();
       return null;
     }
-    return mensagemDeErro.toString();
+    return errorMessage.toString();
   }
 
-  private String getMensagemErro(Map<String, InstanciaTeste> instanciasTeste) {
+  private String getErrorMessage(Map<String, TestInstance> testInstances) {
     StringBuilder sb = new StringBuilder();
     sb.append("Os seguintes arquivos não contêm seus respectivos pares (in/sol):<br>");
-    for (InstanciaTeste instanciaTeste : instanciasTeste.values()) {
-      if (instanciaTeste.soTemUmArquivo()) {
-        sb.append(instanciaTeste.getUnicoArquivo()).append(", <br>");
+    for (TestInstance testInstance : testInstances.values()) {
+      if (testInstance.hasOnlyOneFile()) {
+        sb.append(testInstance.getUniqueFile()).append(", <br>");
       }
     }
     int n = sb.length();
@@ -288,84 +198,174 @@ public class ProblemaServiceImpl implements ProblemaService {
     return sb.toString();
   }
 
-  private String getMensagemErroArquivosErrados(Set<String> arquivosErrados) {
+  private String getErrorMessage(Set<String> wrongFiles) {
     StringBuilder sb = new StringBuilder();
     sb.append("Os seguintes arquivos não respeitam o padrão de arquivos de teste (in/sol):<br>");
-    for (String arq : arquivosErrados) {
-      sb.append(arq).append(", <br>");
+    for (String file : wrongFiles) {
+      sb.append(file).append(", <br>");
     }
     int n = sb.length();
     sb.delete(n - 6, n).append("<br>");
     return sb.toString();
   }
 
-  private boolean isEntradaOuSaida(String ext) {
-    return ext != null && (ext.equals(EXTENSAO_ENTRADA) || ext.equals(EXTENSAO_SOLUCAO));
+  @Override
+  @Transactional
+  public Problem getProblem(Long id) {
+    return problemRepository.getProblem(id);
   }
 
-  private boolean resolvido(List<Submissao> submissoesProblema) {
-    for (Submissao submissao : submissoesProblema) {
-      if (submissao.getEstado().equals(Estado.CORRETO)) {
-        return true;
-      }
+  @Override
+  @Transactional
+  public List<Problem> getProblems() {
+    return problemRepository.getProblems();
+  }
+
+  @Override
+  @Transactional
+  public List<Problem> getProblems(Category category) {
+    return problemRepository.getProblems(category);
+  }
+
+  private boolean isInputOrOutput(String extension) {
+    return extension != null
+        && (extension.equals(INPUT_EXTENSION) || extension.equals(SOLUTION_EXTENSION));
+  }
+
+  @Override
+  @Transactional
+  public void processSubmission(Submission submission) {
+    ProblemJudge judge = problemRepository.loadJudge(submission.getProblem());
+    List<Submission> submissions =
+        submissionRepository.getSubmissions(submission.getAuthor(), submission.getProblem());
+    boolean newProblem = submissions.isEmpty();
+    boolean notAccepted = !accepted(submissions);
+    String folderpath = FileStorageService.ROOT_FOLDER + "submission-"
+        + String.valueOf(submission.getAuthor().getId());
+    File folder = new File(folderpath);
+    if (!folder.exists()) {
+      folder.mkdirs();
     }
-    return false;
-  }
-
-  private boolean temErro(Map<String, InstanciaTeste> instanciasTeste) {
-    for (InstanciaTeste instanciaTeste : instanciasTeste.values()) {
-      if (instanciaTeste.soTemUmArquivo()) {
-        return true;
-      }
+    File file = new File(folderpath + "/Main.java");
+    if (file.exists()) {
+      file.delete();
     }
-    return false;
-  }
-
-  private ParLong validarInstancia(File out, File sol) {
-    ParLong par = new ParLong();
+    Process process = null;
     try {
-      BufferedReader brOut = new BufferedReader(new FileReader(out));
-      BufferedReader brSol = new BufferedReader(new FileReader(sol));
+      file.createNewFile();
+      BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
+      bufferedWriter.write(submission.getImplementation());
+      bufferedWriter.close();
+      process = Runtime.getRuntime().exec("javac " + file.getAbsolutePath());
+      process.waitFor();
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    if (process.exitValue() != 0) {
+      submission.setMessage(getMessage(process.getErrorStream()));
+      submission.setState(State.COMPILATION_ERROR);
+    } else {
+      validateResults(submission, judge, folderpath);
+    }
+    submissionRepository.saveSubmission(submission);
+    userRepository.updateStatistics(submission, newProblem, notAccepted);
+    problemRepository.updateStatistics(submission.getProblem(), notAccepted, submission.getState());
+  }
+
+  @Override
+  @Transactional
+  public void save(Problem problem, MultipartFile[] testFiles,
+      MultipartFile implementationFile) {
+    problem.setStatistics(problemRepository.createProblemStatistics());
+    problem.setForum(problemRepository.createAForum());
+    ProblemJudge judge = problem.getJudge();
+    judge.setImplementation(implementationFile.getOriginalFilename());
+    problemRepository.saveJudge(judge);
+    problemRepository.createInstances(judge, extractTestNames(testFiles));
+    problemRepository.createProblem(problem);
+    String folder = FileStorageService.ROOT_FOLDER + "problem-" + String.valueOf(problem.getId());
+    File folderFile = new File(folder);
+    if (!folderFile.exists()) {
+      folderFile.mkdirs();
+    }
+    storageService.store(implementationFile, folder);
+    for (MultipartFile file : testFiles) {
+      storageService.store(file, folder);
+    }
+    try {
+      Runtime.getRuntime()
+          .exec("javac " + folder + File.separator + implementationFile.getOriginalFilename());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private boolean accepted(List<Submission> submissions) {
+    for (Submission submission : submissions) {
+      if (submission.getState().equals(State.ACCEPTED)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean hasError(Map<String, TestInstance> testInstances) {
+    for (TestInstance testInstance : testInstances.values()) {
+      if (testInstance.hasOnlyOneFile()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private PairLong validateInstance(File output, File solution) {
+    PairLong par = new PairLong();
+    try {
+      BufferedReader brOut = new BufferedReader(new FileReader(output));
+      BufferedReader brSol = new BufferedReader(new FileReader(solution));
       int cSol;
       int cOut;
       while ((cSol = brSol.read()) != -1) {
         cOut = brOut.read();
         if (Character.isWhitespace(cSol)) {
           if (!Character.isWhitespace(cOut)) {
-            this.malFormatado = true;
+            this.presentationError = true;
             do {
               cSol = brSol.read();
             } while (Character.isWhitespace(cSol));
           } else if (cOut != cSol) {
-            this.malFormatado = true;
+            this.presentationError = true;
             continue;
           } else {
             continue;
           }
         }
         if (Character.isWhitespace(cOut)) {
-          this.malFormatado = true;
+          this.presentationError = true;
           do {
             cOut = brOut.read();
           } while (Character.isWhitespace(cOut));
         }
         if (cOut == cSol) {
-          par.primeiro++;
+          par.first++;
         } else {
-          par.segundo++;
+          par.second++;
         }
       }
       while ((cOut = brOut.read()) != -1) {
         if (Character.isWhitespace(cOut)) {
-          this.malFormatado = true;
+          this.presentationError = true;
           do {
             cOut = brOut.read();
           } while (Character.isWhitespace(cOut));
           if (cOut != -1) {
-            par.segundo++;
+            par.second++;
           }
         } else {
-          par.segundo++;
+          par.second++;
         }
       }
       brOut.close();
@@ -377,74 +377,74 @@ public class ProblemaServiceImpl implements ProblemaService {
     return par;
   }
 
-  private void validarResultados(Submissao submissao, AvaliacaoProblema avaliacao, String local) {
-    long contAcertos = 0;
-    long contErros = 0;
-    final long TEMPO_MAX = submissao.getProblema().getTempoLimite() * 2;
-    long tempo = 0;
-    long tempoSoma = 0;
-    boolean falhou = false;
-    this.malFormatado = false;
-    String diretorio = ArmazenamentoDeArquivoService.DIRETORIO_RAIZ + "problema_"
-        + String.valueOf(submissao.getProblema().getId()) + "/";
-    File out = new File(local + "/inst.out");
-    for (InstanciaProblema instancia : avaliacao.getInstancias()) {
+  private void validateResults(Submission submission, ProblemJudge judge, String local) {
+    long countAccepteds = 0;
+    long countErrors = 0;
+    final long MAX_TIME = submission.getProblem().getLimitTime() * 2;
+    long time = 0;
+    long timeSum = 0;
+    boolean failed = false;
+    this.presentationError = false;
+    String folder = FileStorageService.ROOT_FOLDER + "problem-"
+        + String.valueOf(submission.getProblem().getId()) + File.separator;
+    File out = new File(local + File.separator + "inst.out");
+    for (ProblemInstance instance : judge.getInstances()) {
       try {
         out.createNewFile();
       } catch (IOException e) {
         e.printStackTrace();
       }
-      File in = new File(diretorio + instancia.getArquivoEntrada());
-      File sol = new File(diretorio + instancia.getArquivoSaida());
-      tempo = System.currentTimeMillis();
+      File in = new File(folder + instance.getInputFile());
+      File sol = new File(folder + instance.getOutputFile());
+      time = System.currentTimeMillis();
       ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp", local, "Main");
       processBuilder.redirectInput(Redirect.from(in));
       processBuilder.redirectOutput(Redirect.to(out));
       Process process = null;
       try {
         process = processBuilder.start();
-        if (!process.waitFor(TEMPO_MAX, TimeUnit.MILLISECONDS)) {
-          submissao.setMensagem(Estado.TEMPO_EXCEDIDO.getNome());
-          submissao.setEstado(Estado.TEMPO_EXCEDIDO);
-          falhou = true;
+        if (!process.waitFor(MAX_TIME, TimeUnit.MILLISECONDS)) {
+          submission.setMessage(State.TIME_LIMIT_EXCEEDED.getName());
+          submission.setState(State.TIME_LIMIT_EXCEEDED);
+          failed = true;
         } else if (process.exitValue() != 0) {
-          submissao.setMensagem(getMensagem(process.getErrorStream()));
-          submissao.setEstado(Estado.ERRO_DE_EXECUCAO);
-          falhou = true;
+          submission.setMessage(getMessage(process.getErrorStream()));
+          submission.setState(State.RUNTIME_ERROR);
+          failed = true;
         }
       } catch (IOException e) {
         e.printStackTrace();
       } catch (InterruptedException e) {
         if (process != null) {
-          System.out.println(getMensagem(process.getErrorStream()));
+          System.out.println(getMessage(process.getErrorStream()));
         }
         e.printStackTrace();
       } catch (IllegalThreadStateException e) {
         e.printStackTrace();
       }
-      tempo = System.currentTimeMillis() - tempo;
-      tempoSoma += tempo;
-      ParLong par = validarInstancia(out, sol);
-      contAcertos += par.primeiro;
-      contErros += par.segundo;
+      time = System.currentTimeMillis() - time;
+      timeSum += time;
+      PairLong par = validateInstance(out, sol);
+      countAccepteds += par.first;
+      countErrors += par.second;
       out.delete();
-      if (falhou) {
+      if (failed) {
         return;
       }
     }
-    submissao.setTempo((int) tempoSoma / avaliacao.getInstancias().size());
-    if (contErros == 0 && malFormatado) {
-      submissao.setEstado(Estado.MAL_FORMATADO);
-      submissao.setMensagem("Resposta mal formatada!");
+    submission.setTime((int) timeSum / judge.getInstances().size());
+    if (countErrors == 0 && presentationError) {
+      submission.setState(State.PRESENTATION_ERROR);
+      submission.setMessage("Resposta mal formatada!");
 
-    } else if (contErros == 0) {
-      submissao.setEstado(Estado.CORRETO);
-      submissao.setMensagem("Resposta correta!");
+    } else if (countErrors == 0) {
+      submission.setState(State.ACCEPTED);
+      submission.setMessage("Resposta correta!");
     } else {
-      double porcentagemErro = (contErros / (double) (contAcertos + contErros)) * 100;
+      double porcentagemErro = (countErrors / (double) (countAccepteds + countErrors)) * 100;
       int porcentagemErroInt = (int) Math.round(porcentagemErro);
-      submissao.setMensagem(String.format("Resposta incorreta (%d)%%.", porcentagemErroInt));
-      submissao.setEstado(Estado.RESPOSTA_INCORRETA);
+      submission.setMessage(String.format("Resposta incorreta (%d)%%.", porcentagemErroInt));
+      submission.setState(State.WRONG_ANSWER);
     }
   }
 

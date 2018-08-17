@@ -1,8 +1,8 @@
-package org.ufla.dcc.naivejudge.repositorio;
+package org.ufla.dcc.naivejudge.repository;
 
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class ForumDaoImpl implements ForumDao {
+public class ForumRepositoryImpl implements ForumRepository {
 
 }

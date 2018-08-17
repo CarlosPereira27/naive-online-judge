@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.problema;
+package org.ufla.dcc.naivejudge.domain.problem;
 
 import java.io.Serializable;
 import javax.persistence.Column;
@@ -10,39 +10,39 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class InstanciaProblema implements Serializable {
+public class ProblemInstance implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  private Integer id;
+  private Long id;
 
   @Column(nullable = false)
-  private String arquivoEntrada;
+  private String inputFile;
 
   @Column(nullable = false)
-  private String arquivoSaida;
+  private String outputFile;
 
   @ManyToOne
   @JoinColumn(nullable = false)
-  private AvaliacaoProblema avalicao;
+  private ProblemJudge judge;
 
-  public InstanciaProblema() {
+  public ProblemInstance() {
 
   }
 
-  public InstanciaProblema(String teste, AvaliacaoProblema avaliacaoProblema) {
-    this.arquivoEntrada = teste + ".in";
-    this.arquivoSaida = teste + ".sol";
-    this.avalicao = avaliacaoProblema;
+  public ProblemInstance(String test, ProblemJudge judge) {
+    this.inputFile = test + ".in";
+    this.outputFile = test + ".sol";
+    this.judge = judge;
   }
 
-  public InstanciaProblema(String arquivoEntrada, String arquivoSaida, AvaliacaoProblema avalicao) {
-    this.arquivoEntrada = arquivoEntrada;
-    this.arquivoSaida = arquivoSaida;
-    this.avalicao = avalicao;
+  public ProblemInstance(String inputFile, String outputFile, ProblemJudge judge) {
+    this.inputFile = inputFile;
+    this.outputFile = outputFile;
+    this.judge = judge;
   }
 
   @Override
@@ -53,7 +53,7 @@ public class InstanciaProblema implements Serializable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    InstanciaProblema other = (InstanciaProblema) obj;
+    ProblemInstance other = (ProblemInstance) obj;
     if (id == null) {
       if (other.id != null)
         return false;
@@ -62,20 +62,20 @@ public class InstanciaProblema implements Serializable {
     return true;
   }
 
-  public String getArquivoEntrada() {
-    return arquivoEntrada;
-  }
-
-  public String getArquivoSaida() {
-    return arquivoSaida;
-  }
-
-  public AvaliacaoProblema getAvalicao() {
-    return avalicao;
-  }
-
-  public Integer getId() {
+  public Long getId() {
     return id;
+  }
+
+  public String getInputFile() {
+    return inputFile;
+  }
+
+  public ProblemJudge getJudge() {
+    return judge;
+  }
+
+  public String getOutputFile() {
+    return outputFile;
   }
 
   @Override
@@ -86,26 +86,26 @@ public class InstanciaProblema implements Serializable {
     return result;
   }
 
-  public void setArquivoEntrada(String arquivoEntrada) {
-    this.arquivoEntrada = arquivoEntrada;
-  }
-
-  public void setArquivoSaida(String arquivoSaida) {
-    this.arquivoSaida = arquivoSaida;
-  }
-
-  public void setAvalicao(AvaliacaoProblema avalicao) {
-    this.avalicao = avalicao;
-  }
-
-  public void setId(Integer id) {
+  public void setId(Long id) {
     this.id = id;
+  }
+
+  public void setInputFile(String inputFile) {
+    this.inputFile = inputFile;
+  }
+
+  public void setJudge(ProblemJudge judge) {
+    this.judge = judge;
+  }
+
+  public void setOutputFile(String outputFile) {
+    this.outputFile = outputFile;
   }
 
   @Override
   public String toString() {
-    return "InstanciaProblema [id=" + id + ", arquivoEntrada=" + arquivoEntrada + ", arquivoSaida="
-        + arquivoSaida + "]";
+    return "ProblemInstance [id=" + id + ", inputFile=" + inputFile + ", outputFile=" + outputFile
+        + "]";
   }
 
 }

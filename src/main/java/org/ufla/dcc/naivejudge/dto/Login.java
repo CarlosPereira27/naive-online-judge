@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.usuario;
+package org.ufla.dcc.naivejudge.dto;
 
 import java.io.Serializable;
 
@@ -8,15 +8,15 @@ public class Login implements Serializable {
 
   private String email;
 
-  private String senha;
+  private String password;
 
   public Login() {
 
   }
 
-  public Login(String email, String senha) {
+  public Login(String email, String password) {
     this.email = email;
-    this.senha = senha;
+    this.password = password;
   }
 
   @Override
@@ -33,10 +33,10 @@ public class Login implements Serializable {
         return false;
     } else if (!email.equals(other.email))
       return false;
-    if (senha == null) {
-      if (other.senha != null)
+    if (password == null) {
+      if (other.password != null)
         return false;
-    } else if (!senha.equals(other.senha))
+    } else if (!password.equals(other.password))
       return false;
     return true;
   }
@@ -45,8 +45,8 @@ public class Login implements Serializable {
     return email;
   }
 
-  public String getSenha() {
-    return senha;
+  public String getPassword() {
+    return password;
   }
 
   @Override
@@ -54,7 +54,7 @@ public class Login implements Serializable {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((email == null) ? 0 : email.hashCode());
-    result = prime * result + ((senha == null) ? 0 : senha.hashCode());
+    result = prime * result + ((password == null) ? 0 : password.hashCode());
     return result;
   }
 
@@ -62,13 +62,13 @@ public class Login implements Serializable {
     this.email = email;
   }
 
-  public void setSenha(String senha) {
-    this.senha = senha;
+  public void setPassword(String password) {
+    this.password = password;
   }
 
   @Override
   public String toString() {
-    return "Login [email=" + email + ", senha=" + senha + "]";
+    return "Login [email=" + email + ", password=" + password + "]";
   }
 
 }

@@ -1,18 +1,18 @@
-package org.ufla.dcc.naivejudge.repositorio;
+package org.ufla.dcc.naivejudge.repository;
 
 import java.util.List;
-import org.ufla.dcc.naivejudge.modelo.problema.Problema;
-import org.ufla.dcc.naivejudge.modelo.problema.Submissao;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
+import org.ufla.dcc.naivejudge.domain.problem.Problem;
+import org.ufla.dcc.naivejudge.domain.problem.Submission;
+import org.ufla.dcc.naivejudge.domain.user.User;
 
-public interface SubmissaoDao {
+public interface SubmissionRepository {
 
-  Submissao getSubmissao(Integer id);
+  Submission getSubmission(Long id);
 
-  List<Submissao> getSubmissoes(Usuario usuario);
+  List<Submission> getSubmissions(User user);
 
-  List<Submissao> getSubmissoes(Usuario usuario, Problema problema);
+  List<Submission> getSubmissions(User user, Problem problem);
 
-  void salvarOuAtualizarSubmissao(Submissao submissao);
+  void saveSubmission(Submission submission);
 
 }

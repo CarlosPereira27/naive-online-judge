@@ -1,30 +1,30 @@
-package org.ufla.dcc.naivejudge.modelo.enums;
+package org.ufla.dcc.naivejudge.domain.problem;
 
 import java.io.Serializable;
 
-public enum Linguagem implements Serializable {
+public enum ProgrammingLanguage implements Serializable {
 
   JAVA(0, "Java");
 
   private int id;
-  private String nome;
+  private String name;
 
-  private Linguagem(int id, String nome) {
+  private ProgrammingLanguage(int id, String name) {
     this.id = id;
-    this.nome = nome;
+    this.name = name;
   }
 
   public int getId() {
     return id;
   }
 
-  public String getNome() {
-    return nome;
+  public String getName() {
+    return name;
   }
 
   @Override
   public String toString() {
-    return nome;
+    return name;
   }
 
 }

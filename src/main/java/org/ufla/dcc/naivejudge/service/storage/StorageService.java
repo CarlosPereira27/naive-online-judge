@@ -1,22 +1,22 @@
-package org.ufla.dcc.naivejudge.servico.armazenamento;
+package org.ufla.dcc.naivejudge.service.storage;
 
 import java.nio.file.Path;
 import java.util.stream.Stream;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface ArmazenamentoService {
+public interface StorageService {
 
-  void armazenar(MultipartFile arquivo, String diretorio);
+  void store(MultipartFile file, String folder);
 
-  Path carregar(String nomeDoArquivo);
+  Path load(String filepath);
 
-  Resource carregarComoResource(String nomeDoArquivo);
+  Resource loadAsResource(String filepath);
 
-  Stream<Path> carregarTodos();
+  Stream<Path> loadAll();
 
-  void deletarTodos();
+  void deleteAll();
 
-  void inicializar();
+  void init();
 
 }

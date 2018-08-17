@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.teste;
+package org.ufla.dcc.naivejudge.test;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,8 +10,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.concurrent.TimeUnit;
-import org.ufla.dcc.naivejudge.modelo.enums.Genero;
-import org.ufla.dcc.naivejudge.servico.armazenamento.ArmazenamentoDeArquivoService;
+import org.ufla.dcc.naivejudge.domain.user.Gender;
+import org.ufla.dcc.naivejudge.service.storage.FileStorageService;
 
 public class TesteProcess {
 
@@ -38,13 +38,13 @@ public class TesteProcess {
   private static boolean malFormatado;
 
   public static void main(String[] args) {
-    System.out.println(Genero.MASCULINO);
+    System.out.println(Gender.MALE);
     System.out.println("HELLO");
     System.exit(0);
 
-    String diretorio = ArmazenamentoDeArquivoService.DIRETORIO_RAIZ + "problema_13/";
+    String diretorio = FileStorageService.ROOT_FOLDER + "problema_13/";
 
-    String local = ArmazenamentoDeArquivoService.DIRETORIO_RAIZ + "submissao_1";
+    String local = FileStorageService.ROOT_FOLDER + "submissao_1";
 
     File diretorioLocal = new File(local);
     if (!diretorioLocal.exists()) {

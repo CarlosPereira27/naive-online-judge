@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.problema;
+package org.ufla.dcc.naivejudge.domain.problem;
 
 import java.io.Serializable;
 import javax.persistence.Column;
@@ -7,10 +7,9 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.OrderColumn;
-import org.ufla.dcc.naivejudge.modelo.enums.Categoria;
 
 @Entity
-public class CategoriaEstatisticas implements Serializable {
+public class CategoryStatistics implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -18,18 +17,18 @@ public class CategoriaEstatisticas implements Serializable {
   @Column
   @Enumerated(EnumType.ORDINAL)
   @OrderColumn
-  public Categoria categoria;
+  public Category category;
 
   @Column(nullable = false)
-  private Integer qtdProblemas;
+  private Integer qtyProblems;
 
-  public CategoriaEstatisticas() {
+  public CategoryStatistics() {
 
   }
 
-  public CategoriaEstatisticas(Categoria categoria, Integer qtdProblemas) {
-    this.categoria = categoria;
-    this.qtdProblemas = qtdProblemas;
+  public CategoryStatistics(Category category, Integer qtyProblems) {
+    this.category = category;
+    this.qtyProblems = qtyProblems;
   }
 
   @Override
@@ -40,39 +39,39 @@ public class CategoriaEstatisticas implements Serializable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    CategoriaEstatisticas other = (CategoriaEstatisticas) obj;
-    if (categoria != other.categoria)
+    CategoryStatistics other = (CategoryStatistics) obj;
+    if (category != other.category)
       return false;
     return true;
   }
 
-  public Categoria getCategoria() {
-    return categoria;
+  public Category getCategory() {
+    return category;
   }
 
-  public Integer getQtdProblemas() {
-    return qtdProblemas;
+  public Integer getQtyProblems() {
+    return qtyProblems;
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((categoria == null) ? 0 : categoria.hashCode());
+    result = prime * result + ((category == null) ? 0 : category.hashCode());
     return result;
   }
 
-  public void setCategoria(Categoria categoria) {
-    this.categoria = categoria;
+  public void setCategory(Category category) {
+    this.category = category;
   }
 
-  public void setQtdProblemas(Integer qtdProblemas) {
-    this.qtdProblemas = qtdProblemas;
+  public void setQtyProblems(Integer qtyProblems) {
+    this.qtyProblems = qtyProblems;
   }
 
   @Override
   public String toString() {
-    return "CategoriaEstatisticas [categoria=" + categoria + ", qtdProblemas=" + qtdProblemas + "]";
+    return "CategoryStatistics [category=" + category + ", qtyProblems=" + qtyProblems + "]";
   }
 
 }

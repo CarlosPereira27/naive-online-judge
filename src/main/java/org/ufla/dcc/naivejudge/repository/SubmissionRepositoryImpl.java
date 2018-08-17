@@ -1,80 +1,73 @@
-package org.ufla.dcc.naivejudge.repositorio;
+package org.ufla.dcc.naivejudge.repository;
 
 import java.util.List;
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.ufla.dcc.naivejudge.modelo.problema.Problema;
-import org.ufla.dcc.naivejudge.modelo.problema.Submissao;
-import org.ufla.dcc.naivejudge.modelo.problema.Submissao_;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
+import org.ufla.dcc.naivejudge.domain.problem.Problem;
+import org.ufla.dcc.naivejudge.domain.problem.Submission;
+import org.ufla.dcc.naivejudge.domain.problem.Submission_;
+import org.ufla.dcc.naivejudge.domain.user.User;
 
 @Repository
-public class SubmissaoDaoImpl implements SubmissaoDao {
+public class SubmissionRepositoryImpl implements SubmissionRepository {
 
-  private SessionFactory sessionFactory;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Autowired
-  public SubmissaoDaoImpl(EntityManagerFactory entityManagerFactory) {
-    sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-  }
+  public SubmissionRepositoryImpl() {}
 
   @Override
-  public Submissao getSubmissao(Integer id) {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Submissao> query = builder.createQuery(Submissao.class);
-    Root<Submissao> root = query.from(Submissao.class);
-    query.select(root).where(builder.equal(root.get(Submissao_.id), id));
-
+  public Submission getSubmission(Long id) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<Submission> query = builder.createQuery(Submission.class);
+    Root<Submission> root = query.from(Submission.class);
+    query.select(root).where(builder.equal(root.get(Submission_.id), id));
     try {
-      return sessao.createQuery(query).getSingleResult();
+      return session.createQuery(query).getSingleResult();
     } catch (NoResultException e) {
       return null;
     }
   }
 
   @Override
-  public List<Submissao> getSubmissoes(Usuario usuario) {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Submissao> query = builder.createQuery(Submissao.class);
-    Root<Submissao> root = query.from(Submissao.class);
-    query.select(root).where(builder.equal(root.get(Submissao_.autor), usuario))
-        .orderBy(builder.desc(root.get(Submissao_.id)));
-
-    return sessao.createQuery(query).getResultList();
+  public List<Submission> getSubmissions(User user) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<Submission> query = builder.createQuery(Submission.class);
+    Root<Submission> root = query.from(Submission.class);
+    query.select(root).where(builder.equal(root.get(Submission_.author), user))
+        .orderBy(builder.desc(root.get(Submission_.id)));
+    return session.createQuery(query).getResultList();
   }
 
   @Override
-  public List<Submissao> getSubmissoes(Usuario usuario, Problema problema) {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    // SELECT * FROM Submissao
-    // WHERE autor_id = ? and problema_id = ?
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Submissao> query = builder.createQuery(Submissao.class);
-    Root<Submissao> root = query.from(Submissao.class);
+  public List<Submission> getSubmissions(User user, Problem problem) {
+    Session session = entityManager.unwrap(Session.class);
+    // SELECT * FROM Submission
+    // WHERE author_id = ? and problem_id = ?
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<Submission> query = builder.createQuery(Submission.class);
+    Root<Submission> root = query.from(Submission.class);
     query.select(root)
-        .where(builder.and(builder.equal(root.get(Submissao_.autor), usuario),
-            builder.equal(root.get(Submissao_.problema), problema)))
-        .orderBy(builder.desc(root.get(Submissao_.id)));
-
-    return sessao.createQuery(query).getResultList();
+        .where(builder.and(builder.equal(root.get(Submission_.author), user),
+            builder.equal(root.get(Submission_.problem), problem)))
+        .orderBy(builder.desc(root.get(Submission_.id)));
+    return session.createQuery(query).getResultList();
   }
 
   @Override
-  public void salvarOuAtualizarSubmissao(Submissao submissao) {
-    Session sessao = sessionFactory.getCurrentSession();
-    sessao.saveOrUpdate(submissao);
+  public void saveSubmission(Submission submission) {
+    Session session = entityManager.unwrap(Session.class);
+    session.saveOrUpdate(submission);
   }
 
 }

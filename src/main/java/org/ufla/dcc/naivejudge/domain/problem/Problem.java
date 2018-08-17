@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.problema;
+package org.ufla.dcc.naivejudge.domain.problem;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -14,53 +14,52 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import org.ufla.dcc.naivejudge.modelo.enums.Categoria;
-import org.ufla.dcc.naivejudge.modelo.forum.Forum;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
+import org.ufla.dcc.naivejudge.domain.forum.Forum;
+import org.ufla.dcc.naivejudge.domain.user.User;
 
 @Entity
-public class Problema implements Serializable {
+public class Problem implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  private Integer id;
+  private Long id;
 
   @Column(nullable = false)
-  private String titulo;
+  private String title;
 
   @Column(columnDefinition = "text", nullable = false)
-  private String descricao;
+  private String description;
 
   @Column(nullable = false)
-  private Integer tempoLimite;
+  private Integer limitTime;
 
   @ManyToOne
   @JoinColumn(nullable = false)
-  private Usuario autor;
+  private User author;
 
   @Column(nullable = false)
   @Enumerated(EnumType.ORDINAL)
-  private Categoria categoria;
+  private Category category;
 
   @Column(nullable = false)
-  private Integer dificuldade;
+  private Integer difficulty;
 
   @Column
-  private String topicos;
+  private String subjects;
 
   @Column
-  private String contestOrigem;
+  private String originContest;
 
   @Column(nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
-  private Date dataInsercao;
+  private Date createdAt;
 
   @OneToOne
   @JoinColumn(nullable = false, unique = true)
-  private ProblemaEstatisticas estatisticas;
+  private ProblemStatistics statistics;
 
   @OneToOne
   @JoinColumn(nullable = false, unique = true)
@@ -68,22 +67,22 @@ public class Problema implements Serializable {
 
   @OneToOne
   @JoinColumn(nullable = false, unique = true)
-  private AvaliacaoProblema avaliacao;
+  private ProblemJudge judge;
 
-  public Problema() {
-    inicializar();
+  public Problem() {
+    init();
   }
 
-  public Problema(String titulo, String descricao, Integer tempoLimite, Usuario autor,
-      Categoria categoria, Integer dificuldade, AvaliacaoProblema avaliacao) {
-    this.titulo = titulo;
-    this.descricao = descricao;
-    this.tempoLimite = tempoLimite;
-    this.autor = autor;
-    this.categoria = categoria;
-    this.dificuldade = dificuldade;
-    this.avaliacao = avaliacao;
-    inicializar();
+  public Problem(String title, String description, Integer limitTime, User author,
+      Category category, Integer difficulty, ProblemJudge judge) {
+    this.title = title;
+    this.description = description;
+    this.limitTime = limitTime;
+    this.author = author;
+    this.category = category;
+    this.difficulty = difficulty;
+    this.judge = judge;
+    init();
   }
 
   @Override
@@ -94,7 +93,7 @@ public class Problema implements Serializable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    Problema other = (Problema) obj;
+    Problem other = (Problem) obj;
     if (id == null) {
       if (other.id != null)
         return false;
@@ -103,56 +102,56 @@ public class Problema implements Serializable {
     return true;
   }
 
-  public Usuario getAutor() {
-    return autor;
+  public User getAuthor() {
+    return author;
   }
 
-  public AvaliacaoProblema getAvaliacao() {
-    return avaliacao;
+  public Category getCategory() {
+    return category;
   }
 
-  public Categoria getCategoria() {
-    return categoria;
+  public Date getCreatedAt() {
+    return createdAt;
   }
 
-  public String getContestOrigem() {
-    return contestOrigem;
+  public String getDescription() {
+    return description;
   }
 
-  public Date getDataInsercao() {
-    return dataInsercao;
-  }
-
-  public String getDescricao() {
-    return descricao;
-  }
-
-  public Integer getDificuldade() {
-    return dificuldade;
-  }
-
-  public ProblemaEstatisticas getEstatisticas() {
-    return estatisticas;
+  public Integer getDifficulty() {
+    return difficulty;
   }
 
   public Forum getForum() {
     return forum;
   }
 
-  public Integer getId() {
+  public Long getId() {
     return id;
   }
 
-  public Integer getTempoLimite() {
-    return tempoLimite;
+  public ProblemJudge getJudge() {
+    return judge;
   }
 
-  public String getTitulo() {
-    return titulo;
+  public Integer getLimitTime() {
+    return limitTime;
   }
 
-  public String getTopicos() {
-    return topicos;
+  public String getOriginContest() {
+    return originContest;
+  }
+
+  public ProblemStatistics getStatistics() {
+    return statistics;
+  }
+
+  public String getSubjects() {
+    return subjects;
+  }
+
+  public String getTitle() {
+    return title;
   }
 
   @Override
@@ -163,69 +162,69 @@ public class Problema implements Serializable {
     return result;
   }
 
-  public void setAutor(Usuario autor) {
-    this.autor = autor;
+  private void init() {
+    this.createdAt = new Date();
+    this.forum = new Forum(this);
   }
 
-  public void setAvaliacao(AvaliacaoProblema avaliacao) {
-    this.avaliacao = avaliacao;
+  public void setAuthor(User author) {
+    this.author = author;
   }
 
-  public void setCategoria(Categoria categoria) {
-    this.categoria = categoria;
+  public void setCategory(Category category) {
+    this.category = category;
   }
 
-  public void setContestOrigem(String contestOrigem) {
-    this.contestOrigem = contestOrigem;
+  public void setCreatedAt(Date createdAt) {
+    this.createdAt = createdAt;
   }
 
-  public void setDataInsercao(Date dataInsercao) {
-    this.dataInsercao = dataInsercao;
+  public void setDescription(String description) {
+    this.description = description;
   }
 
-  public void setDescricao(String descricao) {
-    this.descricao = descricao;
-  }
-
-  public void setDificuldade(Integer dificuldade) {
-    this.dificuldade = dificuldade;
-  }
-
-  public void setEstatisticas(ProblemaEstatisticas estatisticas) {
-    this.estatisticas = estatisticas;
+  public void setDifficulty(Integer difficulty) {
+    this.difficulty = difficulty;
   }
 
   public void setForum(Forum forum) {
     this.forum = forum;
   }
 
-  public void setId(Integer id) {
+  public void setId(Long id) {
     this.id = id;
   }
 
-  public void setTempoLimite(Integer tempoLimite) {
-    this.tempoLimite = tempoLimite;
+  public void setJudge(ProblemJudge judge) {
+    this.judge = judge;
   }
 
-  public void setTitulo(String titulo) {
-    this.titulo = titulo;
+  public void setLimitTime(Integer limitTime) {
+    this.limitTime = limitTime;
   }
 
-  public void setTopicos(String topicos) {
-    this.topicos = topicos;
+  public void setOriginContest(String originContest) {
+    this.originContest = originContest;
+  }
+
+  public void setStatistics(ProblemStatistics statistics) {
+    this.statistics = statistics;
+  }
+
+  public void setSubjects(String subjects) {
+    this.subjects = subjects;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
   }
 
   @Override
   public String toString() {
-    return "Problema [id=" + id + ", titulo=" + titulo + ", descricao=" + descricao
-        + ", tempoLimite=" + tempoLimite + ", autor=" + autor + ", categoria=" + categoria
-        + ", dificuldade=" + dificuldade + ", topicos=" + topicos + ", contestOrigem="
-        + contestOrigem + ", dataInsercao=" + dataInsercao + ", estatiscas=" + estatisticas + "]";
-  }
-
-  private void inicializar() {
-    this.dataInsercao = new Date();
-    this.forum = new Forum(this);
+    return "Problem [id=" + id + ", title=" + title + ", description=" + description
+        + ", limitTime=" + limitTime + ", author=" + author + ", category=" + category
+        + ", difficulty=" + difficulty + ", subjects=" + subjects + ", originContest="
+        + originContest + ", createdAt=" + createdAt + ", statistics=" + statistics + "]";
   }
 
 }

@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.usuario;
+package org.ufla.dcc.naivejudge.domain.user;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -20,63 +20,61 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import org.ufla.dcc.naivejudge.modelo.enums.Genero;
 
 @Entity
-public class Usuario implements Serializable {
+public class User implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  private Integer id;
+  private Long id;
 
   @Column(nullable = false)
-  private String nome;
+  private String name;
 
   @Column(nullable = false, unique = true)
   private String email;
 
   @Column(nullable = false)
-  private String senha;
+  private String passwordHash;
 
   @Column
   @Enumerated(EnumType.ORDINAL)
-  private Genero genero;
+  private Gender gender;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn
-  private Universidade universidade;
+  private University university;
 
   @Column
-  private String pais;
+  private String country;
 
   @Column(nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
-  private Date dataInsercao;
+  private Date createdAt;
 
   @Embedded
   @AttributeOverrides({
-      @AttributeOverride(name = "qtdSubmissoes", column = @Column(name = "qtdSubmissoes")),
-      @AttributeOverride(name = "qtdProblemasResolvidos",
-          column = @Column(name = "qtdProblemasResolvidos")),
-      @AttributeOverride(name = "qtdProblemasTentados",
-          column = @Column(name = "qtdProblemasTentados"))})
-  private UsuarioEstatistica estatistica;
+      @AttributeOverride(name = "qtySubmissions", column = @Column(name = "qtySubmissions")),
+      @AttributeOverride(name = "qtyAcceptedProblems",
+          column = @Column(name = "qtyAcceptedProblems")),
+      @AttributeOverride(name = "qtyTryProblems", column = @Column(name = "qtyTryProblems"))})
+  private UserStatistics statistics;
 
-  @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
-  @OrderBy("categoria ASC")
-  private List<UsuarioCatEst> estatisticasCategoria;
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+  @OrderBy("category ASC")
+  private List<UserCategoryStatistics> categoryStatistics;
 
-  public Usuario() {
+  public User() {
     init();
   }
 
-  public Usuario(String nome, String email, String senha) {
-    this.nome = nome;
+  public User(String name, String email, String passwordHash) {
+    this.name = name;
     this.email = email;
-    this.senha = senha;
+    this.passwordHash = passwordHash;
     init();
   }
 
@@ -88,7 +86,7 @@ public class Usuario implements Serializable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    Usuario other = (Usuario) obj;
+    User other = (User) obj;
     if (id == null) {
       if (other.id != null)
         return false;
@@ -97,44 +95,44 @@ public class Usuario implements Serializable {
     return true;
   }
 
-  public Date getDataInsercao() {
-    return dataInsercao;
+  public List<UserCategoryStatistics> getCategoryStatistics() {
+    return categoryStatistics;
+  }
+
+  public String getCountry() {
+    return country;
+  }
+
+  public Date getCreatedAt() {
+    return createdAt;
   }
 
   public String getEmail() {
     return email;
   }
 
-  public UsuarioEstatistica getEstatistica() {
-    return estatistica;
+  public Gender getGender() {
+    return gender;
   }
 
-  public List<UsuarioCatEst> getEstatisticasCategoria() {
-    return estatisticasCategoria;
-  }
-
-  public Genero getGenero() {
-    return genero;
-  }
-
-  public Integer getId() {
+  public Long getId() {
     return id;
   }
 
-  public String getNome() {
-    return nome;
+  public String getName() {
+    return name;
   }
 
-  public String getPais() {
-    return pais;
+  public String getPasswordHash() {
+    return passwordHash;
   }
 
-  public String getSenha() {
-    return senha;
+  public UserStatistics getStatistics() {
+    return statistics;
   }
 
-  public Universidade getUniversidade() {
-    return universidade;
+  public University getUniversity() {
+    return university;
   }
 
   @Override
@@ -146,54 +144,54 @@ public class Usuario implements Serializable {
   }
 
   public void init() {
-    this.dataInsercao = new Date();
+    this.createdAt = new Date();
   }
 
-  public void setDataInsercao(Date dataInsercao) {
-    this.dataInsercao = dataInsercao;
+  public void setCategoryStatistics(List<UserCategoryStatistics> categoryStatistics) {
+    this.categoryStatistics = categoryStatistics;
+  }
+
+  public void setCountry(String country) {
+    this.country = country;
+  }
+
+  public void setCreatedAt(Date createdAt) {
+    this.createdAt = createdAt;
   }
 
   public void setEmail(String email) {
     this.email = email;
   }
 
-  public void setEstatistica(UsuarioEstatistica estatistica) {
-    this.estatistica = estatistica;
+  public void setGender(Gender gender) {
+    this.gender = gender;
   }
 
-  public void setEstatisticasCategoria(List<UsuarioCatEst> estatisticasCategoria) {
-    this.estatisticasCategoria = estatisticasCategoria;
-  }
-
-  public void setGenero(Genero genero) {
-    this.genero = genero;
-  }
-
-  public void setId(Integer id) {
+  public void setId(Long id) {
     this.id = id;
   }
 
-  public void setNome(String nome) {
-    this.nome = nome;
+  public void setName(String name) {
+    this.name = name;
   }
 
-  public void setPais(String pais) {
-    this.pais = pais;
+  public void setPasswordHash(String passwordHash) {
+    this.passwordHash = passwordHash;
   }
 
-  public void setSenha(String senha) {
-    this.senha = senha;
+  public void setStatistics(UserStatistics statistics) {
+    this.statistics = statistics;
   }
 
-  public void setUniversidade(Universidade universidade) {
-    this.universidade = universidade;
+  public void setUniversity(University university) {
+    this.university = university;
   }
 
   @Override
   public String toString() {
-    return "Usuario [id=" + id + ", nome=" + nome + ", email=" + email + ", senha=" + senha
-        + ", genero=" + genero + ", universidade=" + universidade + ", pais=" + pais
-        + ", dataInsercao=" + dataInsercao + "]";
+    return "User [id=" + id + ", name=" + name + ", email=" + email + ", passwordHash="
+        + passwordHash + ", gender=" + gender + ", university=" + university + ", country="
+        + country + ", createdAt=" + createdAt + "]";
   }
 
 }

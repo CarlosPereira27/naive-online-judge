@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.forum;
+package org.ufla.dcc.naivejudge.domain.forum;
 
 import java.io.Serializable;
 import java.util.List;
@@ -10,7 +10,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import org.ufla.dcc.naivejudge.modelo.problema.Problema;
+import org.ufla.dcc.naivejudge.domain.problem.Problem;
 
 @Entity
 public class Forum implements Serializable {
@@ -20,20 +20,20 @@ public class Forum implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  private Integer id;
+  private Long id;
 
   @OneToOne(mappedBy = "forum")
-  private Problema problema;
+  private Problem problem;
 
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "forum")
-  private List<ForumMensagem> mensagens;
+  private List<Post> posts;
 
   public Forum() {
 
   }
 
-  public Forum(Problema problema) {
-    this.problema = problema;
+  public Forum(Problem problem) {
+    this.problem = problem;
   }
 
   @Override
@@ -53,16 +53,16 @@ public class Forum implements Serializable {
     return true;
   }
 
-  public Integer getId() {
+  public Long getId() {
     return id;
   }
 
-  public List<ForumMensagem> getMensagens() {
-    return mensagens;
+  public List<Post> getPosts() {
+    return posts;
   }
 
-  public Problema getProblema() {
-    return problema;
+  public Problem getProblem() {
+    return problem;
   }
 
   @Override
@@ -73,21 +73,21 @@ public class Forum implements Serializable {
     return result;
   }
 
-  public void setId(Integer id) {
+  public void setId(Long id) {
     this.id = id;
   }
 
-  public void setMensagens(List<ForumMensagem> mensagens) {
-    this.mensagens = mensagens;
+  public void setPosts(List<Post> posts) {
+    this.posts = posts;
   }
 
-  public void setProblema(Problema problema) {
-    this.problema = problema;
+  public void setProblema(Problem problem) {
+    this.problem = problem;
   }
 
   @Override
   public String toString() {
-    return "Forum [id=" + id + ", problema=" + problema + "]";
+    return "Forum [id=" + id + ", problem=" + problem + "]";
   }
 
 }

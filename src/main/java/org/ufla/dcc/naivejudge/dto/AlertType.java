@@ -1,30 +1,30 @@
-package org.ufla.dcc.naivejudge.controlador;
+package org.ufla.dcc.naivejudge.dto;
 
 import java.io.Serializable;
 
-public enum TipoDeAlerta implements Serializable {
+public enum AlertType implements Serializable {
 
   DEFAULT(0, ""), SUCCESS(1, "alert-success"), INFO(2, "alert-info"), WARNING(3,
       "alert-warning"), DANGER(4, "alert-danger");
 
   private Integer id;
-  private String nome;
+  private String name;
 
-  private TipoDeAlerta(Integer id, String nome) {
+  private AlertType(Integer id, String name) {
     this.id = id;
-    this.nome = nome;
+    this.name = name;
   }
 
   public Integer getId() {
     return id;
   }
 
-  public String getNome() {
-    return nome;
+  public String getName() {
+    return name;
   }
 
   public String toString() {
-    return nome;
+    return name;
   }
 
 }

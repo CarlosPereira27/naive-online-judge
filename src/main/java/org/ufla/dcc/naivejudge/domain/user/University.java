@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.usuario;
+package org.ufla.dcc.naivejudge.domain.user;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -16,53 +16,43 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 @Entity
-public class Universidade implements Serializable {
+public class University implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  private Integer id;
+  private Long id;
 
   @Column(nullable = false)
-  private String nome;
+  private String name;
 
   @Column(nullable = false)
-  private String sigla;
+  private String acronym;
 
   @Column(nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
-  private Date dataInsercao;
+  private Date createdAt;
 
   @Column(nullable = false)
-  private Integer qtdEstudantes;
+  private Integer qtyStudents;
 
   @OrderColumn(nullable = false)
-  private Integer qtdProblemasResolvidos;
+  private Integer qtyAcceptedProblems;
 
-  @OneToMany(fetch = FetchType.LAZY, mappedBy = "universidade")
-  @OrderBy("qtdProblemasResolvidos DESC, qtdSubmissoes ASC")
-  private List<Usuario> usuarios;
+  @OneToMany(fetch = FetchType.LAZY, mappedBy = "university")
+  @OrderBy("qtyAcceptedProblems DESC, qtySubmissions ASC")
+  private List<User> students;
 
-  public Universidade() {
-    inicializar();
+  public University() {
+    init();
   }
 
-  public Universidade(String nome, String sigla) {
-    this.nome = nome;
-    this.sigla = sigla;
-    inicializar();
-  }
-
-  /**
-   * Desvincular um estudante
-   * 
-   * @param usuario
-   */
-  public void desvincularEstudante(Usuario usuario) {
-    this.qtdEstudantes--;
-    this.qtdProblemasResolvidos -= usuario.getEstatistica().getQtdProblemasResolvidos();
+  public University(String name, String acronym) {
+    this.name = name;
+    this.acronym = acronym;
+    init();
   }
 
   @Override
@@ -73,7 +63,7 @@ public class Universidade implements Serializable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    Universidade other = (Universidade) obj;
+    University other = (University) obj;
     if (id == null) {
       if (other.id != null)
         return false;
@@ -82,32 +72,32 @@ public class Universidade implements Serializable {
     return true;
   }
 
-  public Date getDataInsercao() {
-    return dataInsercao;
+  public String getAcronym() {
+    return acronym;
   }
 
-  public Integer getId() {
+  public Date getCreatedAt() {
+    return createdAt;
+  }
+
+  public Long getId() {
     return id;
   }
 
-  public String getNome() {
-    return nome;
+  public String getName() {
+    return name;
   }
 
-  public Integer getQtdEstudantes() {
-    return qtdEstudantes;
+  public Integer getQtyAcceptedProblems() {
+    return qtyAcceptedProblems;
   }
 
-  public Integer getQtdProblemasResolvidos() {
-    return qtdProblemasResolvidos;
+  public Integer getQtyStudents() {
+    return qtyStudents;
   }
 
-  public String getSigla() {
-    return sigla;
-  }
-
-  public List<Usuario> getUsuarios() {
-    return usuarios;
+  public List<User> getStudents() {
+    return students;
   }
 
   @Override
@@ -118,55 +108,65 @@ public class Universidade implements Serializable {
     return result;
   }
 
-  public void setDataInsercao(Date dataInsercao) {
-    this.dataInsercao = dataInsercao;
-  }
-
-  public void setId(Integer id) {
-    this.id = id;
-  }
-
-  public void setNome(String nome) {
-    this.nome = nome;
-  }
-
-  public void setQtdEstudantes(Integer qtdEstudantes) {
-    this.qtdEstudantes = qtdEstudantes;
-  }
-
-  public void setQtdProblemasResolvidos(Integer qtdProblemasResolvidos) {
-    this.qtdProblemasResolvidos = qtdProblemasResolvidos;
-  }
-
-  public void setSigla(String sigla) {
-    this.sigla = sigla;
-  }
-
-  public void setUsuarios(List<Usuario> usuarios) {
-    this.usuarios = usuarios;
-  }
-
-  @Override
-  public String toString() {
-    return "Universidade [id=" + id + ", nome=" + nome + ", sigla=" + sigla + ", dataInsercao="
-        + dataInsercao + ", qtdEstudantes=" + qtdEstudantes + ", qtdProblemasResolvidos="
-        + qtdProblemasResolvidos + "]";
+  private void init() {
+    this.createdAt = new Date();
+    this.qtyStudents = 0;
+    this.qtyAcceptedProblems = 0;
   }
 
   /**
    * Vincular um estudante
    * 
-   * @param usuario
+   * @param student
    */
-  public void vincularEstudante(Usuario usuario) {
-    this.qtdEstudantes++;
-    this.qtdProblemasResolvidos += usuario.getEstatistica().getQtdProblemasResolvidos();
+  public void linkStudent(User student) {
+    this.qtyStudents++;
+    this.qtyAcceptedProblems += student.getStatistics().getQtyAcceptedProblems();
   }
 
-  private void inicializar() {
-    this.dataInsercao = new Date();
-    this.qtdEstudantes = 0;
-    this.qtdProblemasResolvidos = 0;
+  public void setAcronym(String acronym) {
+    this.acronym = acronym;
+  }
+
+  public void setCreatedAt(Date createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setQtyAcceptedProblems(Integer qtyAcceptedProblems) {
+    this.qtyAcceptedProblems = qtyAcceptedProblems;
+  }
+
+  public void setQtyStudents(Integer qtyStudents) {
+    this.qtyStudents = qtyStudents;
+  }
+
+  public void setStudents(List<User> students) {
+    this.students = students;
+  }
+
+  @Override
+  public String toString() {
+    return "University [id=" + id + ", name=" + name + ", acronym=" + acronym + ", createdAt="
+        + createdAt + ", qtyStudents=" + qtyStudents + ", qtyAcceptedProblems="
+        + qtyAcceptedProblems + "]";
+  }
+
+  /**
+   * Desvincular um estudante
+   * 
+   * @param student
+   */
+  public void unlinkStudent(User student) {
+    this.qtyStudents--;
+    this.qtyAcceptedProblems -= student.getStatistics().getQtyAcceptedProblems();
   }
 
 }

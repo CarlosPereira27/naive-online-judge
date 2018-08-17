@@ -1,5 +1,5 @@
-package org.ufla.dcc.naivejudge.repositorio;
+package org.ufla.dcc.naivejudge.repository;
 
-public interface ForumDao {
+public interface ForumRepository {
 
 }

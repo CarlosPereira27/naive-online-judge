@@ -1,16 +1,16 @@
-package org.ufla.dcc.naivejudge.repositorio;
+package org.ufla.dcc.naivejudge.repository;
 
 import java.util.List;
-import org.ufla.dcc.naivejudge.modelo.usuario.Universidade;
+import org.ufla.dcc.naivejudge.domain.user.University;
 
-public interface UniversidadeDao {
+public interface UniversityRepository {
 
-  Universidade getUniversidade(Integer id);
+  List<University> getUniversities();
 
-  Universidade getUniversidade(String nome);
+  University getUniversity(Long id);
 
-  List<Universidade> getUniversidades();
+  University getUniversity(String name);
 
-  boolean registrar(Universidade universidade);
+  boolean saveUniversity(University university);
 
 }

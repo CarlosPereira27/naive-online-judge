@@ -1,37 +1,37 @@
-package org.ufla.dcc.naivejudge.repositorio;
+package org.ufla.dcc.naivejudge.repository;
 
 import java.util.List;
-import org.ufla.dcc.naivejudge.modelo.enums.Categoria;
-import org.ufla.dcc.naivejudge.modelo.est.Progresso;
-import org.ufla.dcc.naivejudge.modelo.problema.CategoriaEstatisticas;
-import org.ufla.dcc.naivejudge.modelo.problema.Submissao;
-import org.ufla.dcc.naivejudge.modelo.usuario.Login;
-import org.ufla.dcc.naivejudge.modelo.usuario.Universidade;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
-import org.ufla.dcc.naivejudge.modelo.usuario.UsuarioCatEst;
+import org.ufla.dcc.naivejudge.domain.problem.Category;
+import org.ufla.dcc.naivejudge.domain.problem.CategoryStatistics;
+import org.ufla.dcc.naivejudge.domain.problem.Submission;
+import org.ufla.dcc.naivejudge.domain.user.University;
+import org.ufla.dcc.naivejudge.domain.user.User;
+import org.ufla.dcc.naivejudge.domain.user.UserCategoryStatistics;
+import org.ufla.dcc.naivejudge.dto.Login;
+import org.ufla.dcc.naivejudge.dto.Progress;
 
-public interface UsuarioDao {
+public interface UserRepository {
 
-  boolean atualizar(Usuario usuario);
+  User getUser(Long id);
 
-  void atualizarEstatisticas(Submissao submissao, boolean novoProblema, boolean naoResolvido);
+  User getUser(String email);
 
-  Usuario getUsuario(Integer id);
+  Progress getUserProgess(User user, List<CategoryStatistics> categoryStatistics);
 
-  Usuario getUsuario(String email);
+  List<User> getUsers();
 
-  Progresso getUsuarioProgesso(Usuario usuario, List<CategoriaEstatisticas> categoriasEst);
+  List<User> getUsers(int max);
 
-  List<Usuario> getUsuarios();
+  List<User> getUsers(University university);
 
-  List<Usuario> getUsuarios(int max);
+  UserCategoryStatistics geUserCategoryStatistics(User user, Category category);
 
-  List<Usuario> getUsuarios(Universidade universidade);
+  boolean save(User user);
 
-  UsuarioCatEst geUsuarioCatEst(Usuario usuario, Categoria categoria);
+  boolean update(User user);
 
-  boolean registrar(Usuario usuario);
+  void updateStatistics(Submission submission, boolean newProblem, boolean notAccepted);
 
-  Usuario validarUsario(Login login);
+  User validateUser(Login login);
 
 }

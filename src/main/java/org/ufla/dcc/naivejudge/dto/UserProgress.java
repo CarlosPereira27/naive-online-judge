@@ -1,46 +1,45 @@
-package org.ufla.dcc.naivejudge.modelo.est;
+package org.ufla.dcc.naivejudge.dto;
 
 import java.io.Serializable;
 import java.util.List;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
+import org.ufla.dcc.naivejudge.domain.user.User;
 
-public class ProgressoUsuario implements Serializable {
+public class UserProgress implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  private Usuario usuario;
+  private User user;
 
-  private List<Usuario> usuariosTop;
+  private List<User> topUsers;
 
-  private Progresso progresso;
+  private Progress progress;
 
-  public ProgressoUsuario() {
+  public UserProgress() {
 
   }
 
-  public Progresso getProgresso() {
-    return progresso;
+  public Progress getProgress() {
+    return progress;
   }
 
-  public Usuario getUsuario() {
-    return usuario;
+  public List<User> getTopUsers() {
+    return topUsers;
   }
 
-  public List<Usuario> getUsuariosTop() {
-    return usuariosTop;
+  public User getUser() {
+    return user;
   }
 
-  public void setProgresso(Progresso progresso) {
-    this.progresso = progresso;
+  public void setProgress(Progress progress) {
+    this.progress = progress;
   }
 
-  public void setUsuario(Usuario usuario) {
-    this.usuario = usuario;
+  public void setTopUsers(List<User> topUsers) {
+    this.topUsers = topUsers;
   }
 
-  public void setUsuariosTop(List<Usuario> usuariosTop) {
-    this.usuariosTop = usuariosTop;
+  public void setUser(User user) {
+    this.user = user;
   }
-
 
 }

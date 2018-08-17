@@ -1,13 +1,13 @@
-package org.ufla.dcc.naivejudge.servico;
+package org.ufla.dcc.naivejudge.service;
 
 import java.util.List;
-import org.ufla.dcc.naivejudge.modelo.problema.Submissao;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
+import org.ufla.dcc.naivejudge.domain.problem.Submission;
+import org.ufla.dcc.naivejudge.domain.user.User;
 
-public interface SubmissaoService {
+public interface SubmissionService {
 
-  Submissao getSubmissao(Integer submissaoId);
+  Submission getSubmission(Long id);
 
-  List<Submissao> getSubmissoes(Usuario usuario);
+  List<Submission> getSubmissions(User user);
 
 }

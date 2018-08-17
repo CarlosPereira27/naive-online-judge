@@ -1,24 +1,24 @@
-package org.ufla.dcc.naivejudge.servico;
+package org.ufla.dcc.naivejudge.service;
 
 import java.util.List;
-import org.ufla.dcc.naivejudge.modelo.est.ProgressoUsuario;
-import org.ufla.dcc.naivejudge.modelo.usuario.Login;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
+import org.ufla.dcc.naivejudge.domain.user.User;
+import org.ufla.dcc.naivejudge.dto.Login;
+import org.ufla.dcc.naivejudge.dto.UserProgress;
 
-public interface UsuarioService {
+public interface UserService {
 
-  boolean atualizar(Usuario usuario);
+  List<User> getTopUsers();
 
-  Usuario getUsuario(Integer id);
+  User getUser(Long id);
 
-  ProgressoUsuario getUsuarioEstatistica(Integer id);
+  UserProgress getUserProgress(Long id);
 
-  List<Usuario> getUsuarios();
+  List<User> getUsers();
 
-  List<Usuario> getUsuariosTop();
+  boolean save(User user);
 
-  boolean registrar(Usuario usuario);
+  boolean update(User user);
 
-  Usuario validarUsario(Login login);
+  User validateUser(Login login);
 
 }

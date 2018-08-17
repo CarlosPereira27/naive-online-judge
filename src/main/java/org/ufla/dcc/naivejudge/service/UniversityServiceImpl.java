@@ -1,39 +1,39 @@
-package org.ufla.dcc.naivejudge.servico;
+package org.ufla.dcc.naivejudge.service;
 
 import java.util.List;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.ufla.dcc.naivejudge.modelo.usuario.Universidade;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
-import org.ufla.dcc.naivejudge.repositorio.UniversidadeDao;
-import org.ufla.dcc.naivejudge.repositorio.UsuarioDao;
+import org.ufla.dcc.naivejudge.domain.user.University;
+import org.ufla.dcc.naivejudge.domain.user.User;
+import org.ufla.dcc.naivejudge.repository.UniversityRepository;
+import org.ufla.dcc.naivejudge.repository.UserRepository;
 
 @Service
-public class UniversidadeServiceImpl implements UniversidadeService {
+public class UniversityServiceImpl implements UniversityService {
 
   @Autowired
-  private UniversidadeDao universidadeDao;
+  private UniversityRepository universityRepository;
 
   @Autowired
-  private UsuarioDao usuarioDao;
+  private UserRepository userRepository;
 
   @Override
   @Transactional
-  public boolean registrar(Universidade universidade) {
-    return universidadeDao.registrar(universidade);
+  public List<University> getUniversities() {
+    return universityRepository.getUniversities();
   }
 
   @Override
   @Transactional
-  public List<Universidade> universidades() {
-    return universidadeDao.getUniversidades();
+  public boolean save(University university) {
+    return universityRepository.saveUniversity(university);
   }
 
   @Override
   @Transactional
-  public List<Usuario> usuariosRank(Universidade universidade) {
-    return usuarioDao.getUsuarios(universidade);
+  public List<User> studentsRank(University university) {
+    return userRepository.getUsers(university);
   }
 
 }

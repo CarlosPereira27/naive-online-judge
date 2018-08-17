@@ -1,242 +1,233 @@
-package org.ufla.dcc.naivejudge.repositorio;
+package org.ufla.dcc.naivejudge.repository;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.ufla.dcc.naivejudge.modelo.enums.Categoria;
-import org.ufla.dcc.naivejudge.modelo.enums.Estado;
-import org.ufla.dcc.naivejudge.modelo.est.Progresso;
-import org.ufla.dcc.naivejudge.modelo.est.ProgressoCategoria;
-import org.ufla.dcc.naivejudge.modelo.problema.CategoriaEstatisticas;
-import org.ufla.dcc.naivejudge.modelo.problema.Submissao;
-import org.ufla.dcc.naivejudge.modelo.usuario.Login;
-import org.ufla.dcc.naivejudge.modelo.usuario.Universidade;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
-import org.ufla.dcc.naivejudge.modelo.usuario.UsuarioCatEst;
-import org.ufla.dcc.naivejudge.modelo.usuario.UsuarioCatEst_;
-import org.ufla.dcc.naivejudge.modelo.usuario.UsuarioEstatistica;
-import org.ufla.dcc.naivejudge.modelo.usuario.UsuarioEstatistica_;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario_;
+import org.ufla.dcc.naivejudge.domain.problem.Category;
+import org.ufla.dcc.naivejudge.domain.problem.CategoryStatistics;
+import org.ufla.dcc.naivejudge.domain.problem.State;
+import org.ufla.dcc.naivejudge.domain.problem.Submission;
+import org.ufla.dcc.naivejudge.domain.user.University;
+import org.ufla.dcc.naivejudge.domain.user.User;
+import org.ufla.dcc.naivejudge.domain.user.UserCategoryStatistics;
+import org.ufla.dcc.naivejudge.domain.user.UserCategoryStatistics_;
+import org.ufla.dcc.naivejudge.domain.user.UserStatistics;
+import org.ufla.dcc.naivejudge.domain.user.UserStatistics_;
+import org.ufla.dcc.naivejudge.domain.user.User_;
+import org.ufla.dcc.naivejudge.dto.CategoryProgress;
+import org.ufla.dcc.naivejudge.dto.Login;
+import org.ufla.dcc.naivejudge.dto.Progress;
 
 @Repository
-public class UsuarioDaoImpl implements UsuarioDao {
+public class UserRepositoryImpl implements UserRepository {
 
-  private SessionFactory sessionFactory;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Autowired
-  public UsuarioDaoImpl(EntityManagerFactory entityManagerFactory) {
-    sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-  }
+  public UserRepositoryImpl() {}
 
-  @Override
-  public boolean atualizar(Usuario usuario) {
-    Session sessao = sessionFactory.getCurrentSession();
-    Usuario usuarioEmail = getUsuario(usuario.getEmail());
-    Universidade universidadeEmail = null;
-    if (usuarioEmail != null) {
-      if (!usuario.getId().equals(usuarioEmail.getId())) {
-        return false;
-      }
-      usuario.setEstatistica(usuarioEmail.getEstatistica());
-      usuario.setDataInsercao(usuarioEmail.getDataInsercao());
-      universidadeEmail = usuarioEmail.getUniversidade();
-      if (universidadeEmail != null && !universidadeEmail.equals(usuario.getUniversidade())) {
-        universidadeEmail.desvincularEstudante(usuarioEmail);
-        sessao.saveOrUpdate(universidadeEmail);
-      }
-      sessao.detach(usuarioEmail);
-    }
-    Universidade universidade = usuario.getUniversidade();
-    if (universidade != null && !universidade.equals(universidadeEmail)) {
-      universidade.vincularEstudante(usuario);
-      sessao.saveOrUpdate(universidade);
-    }
-    sessao.saveOrUpdate(usuario);
-    return true;
-  }
-
-  @Override
-  public void atualizarEstatisticas(Submissao submissao, boolean novoProblema,
-      boolean naoResolvido) {
-    Session sessao = sessionFactory.getCurrentSession();
-    sessao.refresh(submissao);
-    Usuario usuario = submissao.getAutor();
-    UsuarioEstatistica estatistica = usuario.getEstatistica();
-    estatistica.atualizarSubmissao(novoProblema, naoResolvido, submissao.getEstado());
-    UsuarioCatEst usuarioCatEst = geUsuarioCatEst(usuario, submissao.getProblema().getCategoria());
-    usuarioCatEst.atualizarSubmissao(novoProblema, naoResolvido, submissao.getEstado());
-    sessao.saveOrUpdate(usuarioCatEst);
-    sessao.saveOrUpdate(usuario);
-    if (submissao.getEstado().equals(Estado.CORRETO) && naoResolvido) {
-      Universidade universidade = usuario.getUniversidade();
-      if (universidade != null) {
-        universidade.setQtdProblemasResolvidos(universidade.getQtdProblemasResolvidos() + 1);
-        sessao.saveOrUpdate(universidade);
-      }
+  private void createUserCategoryStatistics(User user) {
+    Session session = entityManager.unwrap(Session.class);
+    for (Category cat : Category.values()) {
+      UserCategoryStatistics userCategoryStatistics = new UserCategoryStatistics();
+      userCategoryStatistics.setCategory(cat);
+      userCategoryStatistics.setUser(user);
+      session.save(userCategoryStatistics);
     }
   }
 
   @Override
-  public Usuario getUsuario(Integer id) {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Usuario> query = builder.createQuery(Usuario.class);
-    Root<Usuario> root = query.from(Usuario.class);
-    query.select(root).where(builder.equal(root.get(Usuario_.id), id));
-
+  public User getUser(Long id) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<User> query = builder.createQuery(User.class);
+    Root<User> root = query.from(User.class);
+    query.select(root).where(builder.equal(root.get(User_.id), id));
     try {
-      return sessao.createQuery(query).getSingleResult();
+      return session.createQuery(query).getSingleResult();
     } catch (NoResultException e) {
       return null;
     }
   }
 
   @Override
-  public Usuario getUsuario(String email) {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Usuario> query = builder.createQuery(Usuario.class);
-    Root<Usuario> root = query.from(Usuario.class);
-    query.select(root).where(builder.equal(root.get(Usuario_.email), email));
-
+  public User getUser(String email) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<User> query = builder.createQuery(User.class);
+    Root<User> root = query.from(User.class);
+    query.select(root).where(builder.equal(root.get(User_.email), email));
     try {
-      return sessao.createQuery(query).getSingleResult();
+      return session.createQuery(query).getSingleResult();
     } catch (NoResultException e) {
       return null;
     }
   }
 
   @Override
-  public Progresso getUsuarioProgesso(Usuario usuario, List<CategoriaEstatisticas> categoriasEst) {
-    List<UsuarioCatEst> usuarioCatEst = usuario.getEstatisticasCategoria();
-    Progresso progresso = new Progresso();
-    int sumProblemas = 0;
-    int sumProblemasResolvidos = 0;
-    final int TAMANHO = categoriasEst.size();
-    for (int i = 0; i < TAMANHO; i++) {
-      Categoria categoria = categoriasEst.get(i).getCategoria();
-      int problemas = categoriasEst.get(i).getQtdProblemas();
-      int problemasResolvidos = usuarioCatEst.get(i).getQtdProblemasResolvidos();
-      sumProblemas += problemas;
-      sumProblemasResolvidos += problemasResolvidos;
-      double porcentagem = porcentagem(problemasResolvidos, problemas);
-      progresso.addProgressoCategoria(new ProgressoCategoria(categoria, porcentagem));
+  public Progress getUserProgess(User user, List<CategoryStatistics> categoryStatistics) {
+    List<UserCategoryStatistics> usuarioCatEst = user.getCategoryStatistics();
+    Progress progress = new Progress();
+    int problemsSum = 0;
+    int acceptedProblemsSum = 0;
+    final int SIZE = categoryStatistics.size();
+    for (int i = 0; i < SIZE; i++) {
+      Category category = categoryStatistics.get(i).getCategory();
+      int problems = categoryStatistics.get(i).getQtyProblems();
+      int acceptedProblems = usuarioCatEst.get(i).getQtyAcceptedProblems();
+      problemsSum += problems;
+      acceptedProblemsSum += acceptedProblems;
+      double percentage = percentage(acceptedProblems, problems);
+      progress.addCategoryProgress(new CategoryProgress(category, percentage));
     }
-    progresso.setProgressoGeral(porcentagem(sumProblemasResolvidos, sumProblemas));
-    return progresso;
+    progress.setGeneralProgress(percentage(acceptedProblemsSum, problemsSum));
+    return progress;
   }
 
   @Override
-  public List<Usuario> getUsuarios() {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Usuario> query = builder.createQuery(Usuario.class);
-    Root<Usuario> root = query.from(Usuario.class);
-    Path<UsuarioEstatistica> path = root.get(Usuario_.estatistica);
+  public List<User> getUsers() {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<User> query = builder.createQuery(User.class);
+    Root<User> root = query.from(User.class);
+    Path<UserStatistics> path = root.get(User_.statistics);
     List<Order> orderList = new ArrayList<>();
     System.out.println("GET_USUARIOS");
-    orderList.add(builder.desc(path.get(UsuarioEstatistica_.qtdProblemasResolvidos)));
-    orderList.add(builder.asc(path.get(UsuarioEstatistica_.qtdSubmissoes)));
+    orderList.add(builder.desc(path.get(UserStatistics_.qtyAcceptedProblems)));
+    orderList.add(builder.asc(path.get(UserStatistics_.qtySubmissions)));
     query.select(root).orderBy(orderList);
-    return sessao.createQuery(query).getResultList();
+    return session.createQuery(query).getResultList();
   }
 
   @Override
-  public List<Usuario> getUsuarios(int max) {
-    Session sessao = sessionFactory.getCurrentSession();
-
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Usuario> query = builder.createQuery(Usuario.class);
-    Root<Usuario> root = query.from(Usuario.class);
-    Path<UsuarioEstatistica> path = root.get(Usuario_.estatistica);
+  public List<User> getUsers(int max) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<User> query = builder.createQuery(User.class);
+    Root<User> root = query.from(User.class);
+    Path<UserStatistics> path = root.get(User_.statistics);
     List<Order> orderList = new ArrayList<>();
-    orderList.add(builder.desc(path.get(UsuarioEstatistica_.qtdProblemasResolvidos)));
-    orderList.add(builder.asc(path.get(UsuarioEstatistica_.qtdSubmissoes)));
+    orderList.add(builder.desc(path.get(UserStatistics_.qtyAcceptedProblems)));
+    orderList.add(builder.asc(path.get(UserStatistics_.qtySubmissions)));
     query.select(root).orderBy(orderList);
-
-    return sessao.createQuery(query).setMaxResults(max).getResultList();
+    return session.createQuery(query).setMaxResults(max).getResultList();
   }
 
   @Override
-  public List<Usuario> getUsuarios(Universidade universidade) {
-    Session sessao = sessionFactory.getCurrentSession();
-    sessao.refresh(universidade);
-    return universidade.getUsuarios();
+  public List<User> getUsers(University university) {
+    Session session = entityManager.unwrap(Session.class);
+    session.refresh(university);
+    return university.getStudents();
   }
 
   @Override
-  public UsuarioCatEst geUsuarioCatEst(Usuario usuario, Categoria categoria) {
-    Session sessao = sessionFactory.getCurrentSession();
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<UsuarioCatEst> query = builder.createQuery(UsuarioCatEst.class);
-    Root<UsuarioCatEst> root = query.from(UsuarioCatEst.class);
-    query.select(root).where(builder.and(builder.equal(root.get(UsuarioCatEst_.usuario), usuario),
-        builder.equal(root.get(UsuarioCatEst_.categoria), categoria)));
-
+  public UserCategoryStatistics geUserCategoryStatistics(User user, Category category) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<UserCategoryStatistics> query = builder.createQuery(UserCategoryStatistics.class);
+    Root<UserCategoryStatistics> root = query.from(UserCategoryStatistics.class);
+    query.select(root)
+        .where(builder.and(builder.equal(root.get(UserCategoryStatistics_.user), user),
+            builder.equal(root.get(UserCategoryStatistics_.category), category)));
     try {
-      return sessao.createQuery(query).getSingleResult();
+      return session.createQuery(query).getSingleResult();
     } catch (NoResultException e) {
       return null;
     }
   }
 
+  private double percentage(int quantity, int total) {
+    if (quantity == total) {
+      return 100d;
+    }
+    return (quantity * 100) / (double) total;
+  }
+
   @Override
-  public boolean registrar(Usuario usuario) {
-    Session sessao = sessionFactory.getCurrentSession();
-    Usuario usuarioEmail = getUsuario(usuario.getEmail());
-    if (usuarioEmail != null) {
+  public boolean save(User user) {
+    Session session = entityManager.unwrap(Session.class);
+    User userEmail = getUser(user.getEmail());
+    if (userEmail != null) {
       return false;
     }
-    usuario.setEstatistica(new UsuarioEstatistica());
-    sessao.save(usuario);
-    criarUsuarioCategoriaEstatiscas(usuario);
+    user.setStatistics(new UserStatistics());
+    session.save(user);
+    createUserCategoryStatistics(user);
     return true;
   }
 
   @Override
-  public Usuario validarUsario(Login login) {
-    Session sessao = sessionFactory.getCurrentSession();
+  public boolean update(User user) {
+    Session session = entityManager.unwrap(Session.class);
+    User userEmail = getUser(user.getEmail());
+    University universityEmail = null;
+    if (userEmail != null) {
+      if (!user.getId().equals(userEmail.getId())) {
+        return false;
+      }
+      user.setStatistics(userEmail.getStatistics());
+      user.setCreatedAt(userEmail.getCreatedAt());
+      universityEmail = userEmail.getUniversity();
+      if (universityEmail != null && !universityEmail.equals(user.getUniversity())) {
+        universityEmail.unlinkStudent(userEmail);
+        session.saveOrUpdate(universityEmail);
+      }
+      session.detach(userEmail);
+    }
+    University university = user.getUniversity();
+    if (university != null && !university.equals(universityEmail)) {
+      university.linkStudent(user);
+      session.saveOrUpdate(university);
+    }
+    session.saveOrUpdate(user);
+    return true;
+  }
 
-    CriteriaBuilder builder = sessao.getCriteriaBuilder();
-    CriteriaQuery<Usuario> query = builder.createQuery(Usuario.class);
-    Root<Usuario> root = query.from(Usuario.class);
-    query.select(root).where(builder.and(builder.equal(root.get(Usuario_.email), login.getEmail()),
-        builder.equal(root.get(Usuario_.senha), login.getSenha())));
+  @Override
+  public void updateStatistics(Submission submission, boolean newProblem, boolean notAccepted) {
+    Session session = entityManager.unwrap(Session.class);
+    session.refresh(submission);
+    User user = submission.getAuthor();
+    UserStatistics statistics = user.getStatistics();
+    statistics.updateSubmission(newProblem, notAccepted, submission.getState());
+    UserCategoryStatistics userCategoryStatistics =
+        geUserCategoryStatistics(user, submission.getProblem().getCategory());
+    userCategoryStatistics.updateSubmission(newProblem, notAccepted, submission.getState());
+    session.saveOrUpdate(userCategoryStatistics);
+    session.saveOrUpdate(user);
+    if (submission.getState().equals(State.ACCEPTED) && notAccepted) {
+      University university = user.getUniversity();
+      if (university != null) {
+        university.setQtyAcceptedProblems(university.getQtyAcceptedProblems() + 1);
+        session.saveOrUpdate(university);
+      }
+    }
+  }
+
+  @Override
+  public User validateUser(Login login) {
+    Session session = entityManager.unwrap(Session.class);
+    CriteriaBuilder builder = session.getCriteriaBuilder();
+    CriteriaQuery<User> query = builder.createQuery(User.class);
+    Root<User> root = query.from(User.class);
+    query.select(root).where(builder.and(builder.equal(root.get(User_.email), login.getEmail()),
+        builder.equal(root.get(User_.passwordHash), login.getPassword())));
     try {
-      return sessao.createQuery(query).getSingleResult();
+      return session.createQuery(query).getSingleResult();
     } catch (NoResultException e) {
       return null;
     }
-  }
-
-  private void criarUsuarioCategoriaEstatiscas(Usuario usuario) {
-    Session sessao = sessionFactory.getCurrentSession();
-    for (Categoria cat : Categoria.values()) {
-      UsuarioCatEst usuarioCatEst = new UsuarioCatEst();
-      usuarioCatEst.setCategoria(cat);
-      usuarioCatEst.setUsuario(usuario);
-      sessao.save(usuarioCatEst);
-    }
-  }
-
-  private double porcentagem(int quantidade, int total) {
-    if (quantidade == total) {
-      return 100d;
-    }
-    return (quantidade * 100) / (double) total;
   }
 
 }

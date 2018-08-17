@@ -1,93 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:mvc="http://www.springframework.org/schema/mvc"
-	xsi:schemaLocation="
-		http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context
-		http://www.springframework.org/schema/context/spring-context.xsd
-		http://www.springframework.org/schema/mvc
-		http://www.springframework.org/schema/mvc/spring-mvc.xsd
-		http://www.springframework.org/schema/tx 
-		http://www.springframework.org/schema/tx/spring-tx.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:tx="http://www.springframework.org/schema/tx" xmlns:mvc="http://www.springframework.org/schema/mvc"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc.xsd
+    http://www.springframework.org/schema/tx 
+    http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<!-- Add support for component scanning -->
-	<context:component-scan base-package="org.ufla.naivejudge" />
+  <!-- Add support for component scanning -->
+  <context:component-scan base-package="org.ufla.naivejudge" />
 
-	<!-- Add support for conversion, formatting and validation support -->
-	<mvc:annotation-driven />
+  <!-- Add support for conversion, formatting and validation support -->
+  <mvc:annotation-driven />
 
-	<!-- Define Spring MVC view resolver -->
-	<bean
-		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-		<property name="prefix" value="/WEB-INF/view/" />
-		<property name="suffix" value=".jsp" />
-	</bean>
+  <!-- Define Spring MVC view resolver -->
+  <bean
+    class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="prefix" value="/WEB-INF/view/" />
+    <property name="suffix" value=".jsp" />
+  </bean>
 
-	<bean id="multipartResolver"
-		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-		<!-- max upload size in bytes -->
-		<property name="maxUploadSize" value="20971520" /> <!-- 20MB -->
+  <bean id="multipartResolver"
+    class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+    <!-- max upload size in bytes -->
+    <property name="maxUploadSize" value="20971520" /> <!-- 20MB -->
 
-		<!-- max size of file in memory (in bytes) -->
-		<property name="maxInMemorySize" value="1048576" /> <!-- 1MB -->
-	</bean>
+    <!-- max size of file in memory (in bytes) -->
+    <property name="maxInMemorySize" value="1048576" /> <!-- 1MB -->
+  </bean>
 
-	<!-- Step 1: Define Database DataSource / connection pool -->
-	<bean id="myDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
-		destroy-method="close">
-		<property name="driverClass" value="com.mysql.jdbc.Driver" />
-		<property name="jdbcUrl"
-			value="jdbc:mysql://localhost:3306/naive_online_judge?useSSL=false" />
-		<property name="user" value="springstudent" />
-		<property name="password" value="springstudent" />
+  <!-- Step 1: Define Database DataSource / connection pool -->
+  <bean id="myDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+    destroy-method="close">
+    <property name="driverClass" value="com.mysql.jdbc.Driver" />
+    <property name="jdbcUrl"
+      value="jdbc:mysql://localhost:3306/naive_online_judge?useSSL=false" />
+    <property name="user" value="springstudent" />
+    <property name="password" value="springstudent" />
 
-		<!-- these are connection pool properties for C3P0 -->
-		<property name="initialPoolSize" value="5" />
-		<property name="minPoolSize" value="5" />
-		<property name="maxPoolSize" value="20" />
-		<property name="maxIdleTime" value="30000" />
-	</bean>
+    <!-- these are connection pool properties for C3P0 -->
+    <property name="initialPoolSize" value="5" />
+    <property name="minPoolSize" value="5" />
+    <property name="maxPoolSize" value="20" />
+    <property name="maxIdleTime" value="30000" />
+  </bean>
 
-	<!-- Step 2: Setup Hibernate session factory -->
-	<bean id="sessionFactory"
-		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
-		<property name="dataSource" ref="myDataSource" />
-		<property name="packagesToScan" value="org.ufla.naivejudge.modelo" />
-		<property name="hibernateProperties">
-			<props>
-				<!-- Select our SQL dialect -->
+  <!-- Step 2: Setup Hibernate session factory -->
+  <bean id="sessionFactory"
+    class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+    <property name="dataSource" ref="myDataSource" />
+    <property name="packagesToScan" value="org.ufla.naivejudge.modelo" />
+    <property name="hibernateProperties">
+      <props>
+        <!-- Select our SQL dialect -->
 
-				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
+        <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
 
-				<!-- Echo the SQL to stdout -->
-				<prop key="hibernate.show_sql">true</prop>
-				<prop key="hibernate.format_sql">true</prop>
+        <!-- Echo the SQL to stdout -->
+        <prop key="hibernate.show_sql">true</prop>
+        <prop key="hibernate.format_sql">true</prop>
 
-				<prop key="hibernate.hbm2ddl.auto">update</prop>
+        <prop key="hibernate.hbm2ddl.auto">update</prop>
 
-			</props>
-		</property>
-	</bean>
+      </props>
+    </property>
+  </bean>
 
-	<!-- Step 3: Setup Hibernate transaction manager -->
-	<bean id="myTransactionManager"
-		class="org.springframework.orm.hibernate5.HibernateTransactionManager">
-		<property name="sessionFactory" ref="sessionFactory" />
-	</bean>
+  <!-- Step 3: Setup Hibernate transaction manager -->
+  <bean id="myTransactionManager"
+    class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
 
-	<!-- Step 4: Enable configuration of transactional behavior based on annotations -->
-	<tx:annotation-driven transaction-manager="myTransactionManager" />
+  <!-- Step 4: Enable configuration of transactional behavior based on annotations -->
+  <tx:annotation-driven transaction-manager="myTransactionManager" />
 
-	<!-- Add support for reading web resources: css, images, js, etc ... -->
-	<mvc:resources location="/resources/" mapping="/resources/**"></mvc:resources>
+  <!-- Add support for reading web resources: css, images, js, etc ... -->
+  <mvc:resources location="/resources/" mapping="/resources/**"></mvc:resources>
 
-	<bean id="messageSource"
-		class="org.springframework.context.support.ResourceBundleMessageSource">
+  <bean id="messageSource"
+    class="org.springframework.context.support.ResourceBundleMessageSource">
 
-		<property name="basenames" value="resources/messages" />
+    <property name="basenames" value="resources/messages" />
 
-	</bean>
+  </bean>
 
 </beans>

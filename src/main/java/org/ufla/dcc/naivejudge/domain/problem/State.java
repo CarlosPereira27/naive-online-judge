@@ -1,32 +1,32 @@
-package org.ufla.dcc.naivejudge.modelo.enums;
+package org.ufla.dcc.naivejudge.domain.problem;
 
 import java.io.Serializable;
 
-public enum Estado implements Serializable {
+public enum State implements Serializable {
 
-  CORRETO(0, "Correto"), ERRO_DE_COMPILACAO(1, "Erro de compilação"), ERRO_DE_EXECUCAO(2,
-      "Erro de execução"), TEMPO_EXCEDIDO(3, "Tempo excedido"), MAL_FORMATADO(4,
-          "Mal formatado"), RESPOSTA_INCORRETA(5, "Resposta incorreta");
+  ACCEPTED(0, "Correto"), COMPILATION_ERROR(1, "Erro de compilação"), RUNTIME_ERROR(2,
+      "Erro de execução"), TIME_LIMIT_EXCEEDED(3, "Tempo excedido"), PRESENTATION_ERROR(4,
+          "Mal formatado"), WRONG_ANSWER(5, "Resposta incorreta");
 
   public int id;
-  public String nome;
+  public String name;
 
-  private Estado(int id, String nome) {
+  private State(int id, String name) {
     this.id = id;
-    this.nome = nome;
+    this.name = name;
   }
 
   public int getId() {
     return id;
   }
 
-  public String getNome() {
-    return nome;
+  public String getName() {
+    return name;
   }
 
   @Override
   public String toString() {
-    return nome;
+    return name;
   }
 
 }

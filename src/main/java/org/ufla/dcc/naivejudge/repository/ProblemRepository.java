@@ -1,37 +1,37 @@
-package org.ufla.dcc.naivejudge.repositorio;
+package org.ufla.dcc.naivejudge.repository;
 
 import java.util.List;
 import java.util.SortedSet;
-import org.ufla.dcc.naivejudge.modelo.enums.Categoria;
-import org.ufla.dcc.naivejudge.modelo.enums.Estado;
-import org.ufla.dcc.naivejudge.modelo.forum.Forum;
-import org.ufla.dcc.naivejudge.modelo.problema.AvaliacaoProblema;
-import org.ufla.dcc.naivejudge.modelo.problema.CategoriaEstatisticas;
-import org.ufla.dcc.naivejudge.modelo.problema.Problema;
-import org.ufla.dcc.naivejudge.modelo.problema.ProblemaEstatisticas;
+import org.ufla.dcc.naivejudge.domain.forum.Forum;
+import org.ufla.dcc.naivejudge.domain.problem.Category;
+import org.ufla.dcc.naivejudge.domain.problem.CategoryStatistics;
+import org.ufla.dcc.naivejudge.domain.problem.Problem;
+import org.ufla.dcc.naivejudge.domain.problem.ProblemJudge;
+import org.ufla.dcc.naivejudge.domain.problem.ProblemStatistics;
+import org.ufla.dcc.naivejudge.domain.problem.State;
 
-public interface ProblemaDao {
-
-  void atualizarEstatisticas(Problema problema, boolean naoResolvido, Estado estado);
-
-  AvaliacaoProblema carregarAvaliacao(Problema problema);
+public interface ProblemRepository {
 
   Forum createAForum();
 
-  void createProblema(Problema problema);
+  void createInstances(ProblemJudge judge, SortedSet<String> tests);
 
-  ProblemaEstatisticas createProblemaEstatistica();
+  void createProblem(Problem problem);
 
-  void criarInstancias(AvaliacaoProblema avaliacaoProblema, SortedSet<String> testes);
+  ProblemStatistics createProblemStatistics();
 
-  List<CategoriaEstatisticas> getCategoriasEst();
+  List<CategoryStatistics> getCategoryStatistics();
 
-  Problema getProblema(Integer id);
+  Problem getProblem(Long id);
 
-  List<Problema> getProblemas();
+  List<Problem> getProblems();
 
-  List<Problema> getProblemas(Categoria categoria);
+  List<Problem> getProblems(Category category);
 
-  void saveAvaliacaoProblema(AvaliacaoProblema avaliacaoProblema);
+  ProblemJudge loadJudge(Problem problem);
+
+  void saveJudge(ProblemJudge judge);
+
+  void updateStatistics(Problem problem, boolean notAccepted, State state);
 
 }

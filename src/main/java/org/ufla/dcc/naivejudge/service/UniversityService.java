@@ -1,15 +1,15 @@
-package org.ufla.dcc.naivejudge.servico;
+package org.ufla.dcc.naivejudge.service;
 
 import java.util.List;
-import org.ufla.dcc.naivejudge.modelo.usuario.Universidade;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
+import org.ufla.dcc.naivejudge.domain.user.University;
+import org.ufla.dcc.naivejudge.domain.user.User;
 
-public interface UniversidadeService {
+public interface UniversityService {
 
-  boolean registrar(Universidade universidade);
+  List<University> getUniversities();
 
-  List<Universidade> universidades();
+  boolean save(University university);
 
-  List<Usuario> usuariosRank(Universidade universidade);
+  List<User> studentsRank(University university);
 
 }

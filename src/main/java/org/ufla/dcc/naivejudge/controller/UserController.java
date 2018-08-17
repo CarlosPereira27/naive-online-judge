@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.controlador;
+package org.ufla.dcc.naivejudge.controller;
 
 import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,181 +6,171 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.ufla.dcc.naivejudge.modelo.enums.Categoria;
-import org.ufla.dcc.naivejudge.modelo.est.ProgressoUsuario;
-import org.ufla.dcc.naivejudge.modelo.usuario.Login;
-import org.ufla.dcc.naivejudge.modelo.usuario.Universidade;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
-import org.ufla.dcc.naivejudge.servico.UniversidadeService;
-import org.ufla.dcc.naivejudge.servico.UsuarioService;
+import org.ufla.dcc.naivejudge.domain.problem.Category;
+import org.ufla.dcc.naivejudge.domain.user.Gender;
+import org.ufla.dcc.naivejudge.domain.user.University;
+import org.ufla.dcc.naivejudge.domain.user.User;
+import org.ufla.dcc.naivejudge.dto.AlertType;
+import org.ufla.dcc.naivejudge.dto.Login;
+import org.ufla.dcc.naivejudge.dto.Message;
+import org.ufla.dcc.naivejudge.dto.UserProgress;
+import org.ufla.dcc.naivejudge.service.UniversityService;
+import org.ufla.dcc.naivejudge.service.UserService;
 
 @Controller
-@RequestMapping("/usuario")
-public class UsuarioController {
+@RequestMapping("/user")
+public class UserController {
 
-  public static String[] getPaises() {
+  public static String[] getCountries() {
     return new String[] {"Alemanha", "Argentina", "Brasil", "Canadá", "China", "Estados Unidos",
         "França", "Inglaterra", "Japão", "Mexico"};
   }
 
-  // need to inject the customer service
   @Autowired
-  private UsuarioService usuarioService;
+  private UserService userService;
 
   @Autowired
-  private UniversidadeService universidadeService;
+  private UniversityService universityService;
 
-  @GetMapping("/configuracoes")
-  public String configuracoesGet(Model theModel, HttpSession session) {
-    Usuario usuario = (Usuario) session.getAttribute("usuario");
-    if (usuario == null) {
-      return "redirect:/usuario/login";
+  @GetMapping("/configurations")
+  public String getConfigurations(Model model, HttpSession session, RedirectAttributes attributes) {
+    User user = AuthUtils.authenticateUser(attributes, session, "acessar suas configurações");
+    if (user == null) {
+      return "redirect:/user/home";
     }
-    if (usuario.getUniversidade() == null) {
-      usuario.setUniversidade(new Universidade());
+    if (user.getUniversity() == null) {
+      user.setUniversity(new University());
     }
-    theModel.addAttribute("universidades", universidadeService.universidades());
-    theModel.addAttribute("usuario", usuario);
-    theModel.addAttribute("paises", getPaises());
-
-    return "configuracoes";
-  }
-
-  @PostMapping("/configuracoes")
-  public String configuracoesPost(RedirectAttributes attributes,
-      @ModelAttribute("usuario") Usuario usuario, HttpSession session) {
-    if (session.getAttribute("usuario") == null) {
-      return "redirect:/usuario/login";
-    }
-    boolean atualizar = usuarioService.atualizar(usuario);
-    usuario.setEstatistica(((Usuario) session.getAttribute("usuario")).getEstatistica());
-    if (!atualizar) {
-      attributes.addFlashAttribute("mensagem",
-          new Mensagem("Email já cadastrado!", TipoDeAlerta.DANGER));
-    } else {
-      attributes.addFlashAttribute("mensagem",
-          new Mensagem("Dados atualizados com sucesso!", TipoDeAlerta.SUCCESS));
-      session.setAttribute("usuario", usuario);
-    }
-
-    return "redirect:/usuario/configuracoes";
-  }
-
-  @GetMapping("/estatistica")
-  public String estatistica(Model theModel, @RequestParam("usuarioId") Integer usuarioId,
-      @ModelAttribute("mensagem") Mensagem mensagem, HttpSession session) {
-    if (mensagem.isNull()) {
-      theModel.addAttribute("mensagem", null);
-    }
-    if (session.getAttribute("usuario") == null) {
-      return "redirect:/usuario/login";
-    }
-    if (!popularEstatisticas(theModel, usuarioId)) {
-      return "redirect:/usuario/home";
-    }
-    return "estatisticas";
-
+    model.addAttribute("universities", universityService.getUniversities());
+    model.addAttribute("user", user);
+    model.addAttribute("countries", getCountries());
+    model.addAttribute("genders", Gender.values());
+    return "user/edit-configurations";
   }
 
   @GetMapping("/home")
-  public String home(@ModelAttribute("mensagem") Mensagem mensagem, RedirectAttributes attributes,
+  public String getHome(Model model, @ModelAttribute("login") Login login,
+      @ModelAttribute("message") Message message, RedirectAttributes attributes,
       HttpSession session) {
-    Usuario usuario = (Usuario) session.getAttribute("usuario");
-    if (usuario == null) {
-      return "redirect:/usuario/login";
+    User user = AuthUtils.authenticateUser(attributes, session, "acessar o sistema");
+    if (user == null) {
+      model.addAttribute("topUsers", userService.getTopUsers());
+      return "user/user-home";
     }
-    attributes.addAttribute("usuarioId", usuario.getId());
-    attributes.addFlashAttribute("mensagem", mensagem);
-
-    return "redirect:/usuario/estatistica";
-  }
-
-  @PostMapping("/login")
-  public String logarPost(@ModelAttribute("login") Login login, RedirectAttributes attributes,
-      HttpSession session) {
-    Usuario usuario = usuarioService.validarUsario(login);
-    if (usuario == null) {
-      attributes.addFlashAttribute("login", login);
-      attributes.addFlashAttribute("mensagem",
-          new Mensagem("Email ou senha incorreta!", TipoDeAlerta.DANGER));
-      return "redirect:/usuario/login";
-    }
-    session.setAttribute("usuario", usuario);
-    session.setAttribute("categoriasProblemas", Categoria.values());
-    attributes.addAttribute("usuarioId", usuario.getId());
-    attributes.addFlashAttribute("mensagem",
-        new Mensagem("Bem vindo " + usuario.getNome() + "!", TipoDeAlerta.SUCCESS));
-
-    return "redirect:/usuario/home";
+    attributes.addFlashAttribute("message", message);
+    return "redirect:/user/statistics/" + user.getId();
   }
 
   @GetMapping("/login")
-  public String loginGet(Model theModel, @ModelAttribute("login") Login login,
-      @ModelAttribute("mensagem") Mensagem mensagem) {
-    System.out.println("LOGIN");
-    if (mensagem.isNull()) {
-      theModel.addAttribute("mensagem", null);
+  public String getLogin(Model model, @ModelAttribute("login") Login login,
+      @ModelAttribute("message") Message message) {
+    if (message.isNull()) {
+      model.addAttribute("message", null);
     }
-    return "login";
+    return "user/user-login";
   }
 
   @GetMapping("/logout")
-  public String logout(HttpSession session) {
-    session.removeAttribute("usuario");
-
-    return "redirect:/usuario/login";
+  public String getLogout(HttpSession session) {
+    session.removeAttribute("user");
+    return "redirect:/user/login";
   }
 
   @GetMapping("/rank")
-  public String rank(Model theModel, HttpSession session) {
-    if (session.getAttribute("usuario") == null) {
-      return "redirect:/usuario/login";
-    }
-    theModel.addAttribute("usuarios", usuarioService.getUsuarios());
-
-    return "rank";
+  public String getRank(Model model) {
+    model.addAttribute("users", userService.getUsers());
+    return "user/users-rank";
   }
 
-  @GetMapping("/registrar")
-  public String registrarGet(Model theModel, @ModelAttribute("usuario") Usuario usuario,
-      @ModelAttribute("mensagem") Mensagem mensagem) {
-    if (mensagem.isNull()) {
-      theModel.addAttribute("mensagem", null);
+  @GetMapping("/register")
+  public String getRegister(Model model, @ModelAttribute("user") User user,
+      @ModelAttribute("message") Message message) {
+    if (message.isNull()) {
+      model.addAttribute("message", null);
     }
-    return "registrar";
+    return "user/register-user";
   }
 
-  @PostMapping("/registrar")
-  public String registrarPost(@ModelAttribute("usuario") Usuario usuario,
-      RedirectAttributes attributes, HttpSession session) {
-    if (usuarioService.registrar(usuario)) {
-      session.setAttribute("usuario", usuario);
-      session.setAttribute("categoriasProblemas", Categoria.values());
-      attributes.addFlashAttribute("mensagem",
-          new Mensagem("Bem vindo " + usuario.getNome() + "!", TipoDeAlerta.SUCCESS));
-      return "redirect:/usuario/home";
+  @GetMapping("/statistics/{userId}")
+  public String getStatistics(Model model, @PathVariable("userId") Long userId,
+      @ModelAttribute("message") Message message) {
+    if (message.isNull()) {
+      model.addAttribute("message", null);
     }
-    attributes.addFlashAttribute("mensagem",
-        new Mensagem("Email já cadastrado!", TipoDeAlerta.DANGER));
-    attributes.addFlashAttribute("usuario", usuario);
+    if (!populateStatistics(model, userId)) {
+      return "redirect:/user/home";
+    }
+    return "user/user-statistics";
 
-    return "redirect:/usuario/registrar";
   }
 
-  private boolean popularEstatisticas(Model theModel, Integer usuarioId) {
-    ProgressoUsuario progressoUsuario = usuarioService.getUsuarioEstatistica(usuarioId);
-    if (progressoUsuario == null) {
+  private boolean populateStatistics(Model model, Long userId) {
+    UserProgress userProgress = userService.getUserProgress(userId);
+    if (userProgress == null) {
       return false;
     }
-    theModel.addAttribute("usuarios", progressoUsuario.getUsuariosTop());
-    theModel.addAttribute("porcentagemGeral", progressoUsuario.getProgresso().getProgressoGeral());
-    theModel.addAttribute("progressoCats", progressoUsuario.getProgresso().getProgressosCat());
-    theModel.addAttribute("usuarioEst", progressoUsuario.getUsuario());
+    model.addAttribute("topUsers", userProgress.getTopUsers());
+    model.addAttribute("generalProgress", userProgress.getProgress().getGeneralProgress());
+    model.addAttribute("categoriesProgress", userProgress.getProgress().getCategoryProgressList());
+    model.addAttribute("userStatistics", userProgress.getUser());
     return true;
+  }
+
+  @PostMapping("/configurations")
+  public String postConfigurations(@ModelAttribute("user") User user, RedirectAttributes attributes,
+      HttpSession session) {
+    User userSession =
+        AuthUtils.authenticateUser(attributes, session, "acessar suas configurações");
+    if (userSession == null) {
+      return "redirect:/user/home";
+    }
+    boolean update = userService.update(user);
+    user.setStatistics(userSession.getStatistics());
+    if (!update) {
+      attributes.addFlashAttribute("message",
+          new Message("Email já cadastrado!", AlertType.DANGER));
+    } else {
+      attributes.addFlashAttribute("message",
+          new Message("Dados atualizados com sucesso!", AlertType.SUCCESS));
+      session.setAttribute("user", user);
+    }
+    return "redirect:/user/configurations";
+  }
+
+  @PostMapping("/login")
+  public String postLogin(@ModelAttribute("login") Login login, RedirectAttributes attributes,
+      HttpSession session) {
+    User user = userService.validateUser(login);
+    if (user == null) {
+      attributes.addFlashAttribute("login", login);
+      attributes.addFlashAttribute("message",
+          new Message("Email ou senha incorreta!", AlertType.DANGER));
+      return "redirect:/user/login";
+    }
+    session.setAttribute("user", user);
+    session.setAttribute("categories", Category.values());
+    attributes.addFlashAttribute("message",
+        new Message("Bem vindo " + user.getName() + "!", AlertType.SUCCESS));
+    return "redirect:/user/home";
+  }
+
+  @PostMapping("/register")
+  public String postRegister(@ModelAttribute("user") User user, RedirectAttributes attributes,
+      HttpSession session) {
+    if (userService.save(user)) {
+      session.setAttribute("user", user);
+      session.setAttribute("categories", Category.values());
+      attributes.addFlashAttribute("message",
+          new Message("Bem vindo " + user.getName() + "!", AlertType.SUCCESS));
+      return "redirect:/user/home";
+    }
+    attributes.addFlashAttribute("message", new Message("Email já cadastrado!", AlertType.DANGER));
+    attributes.addFlashAttribute("user", user);
+    return "redirect:/user/register";
   }
 
 }

@@ -1,29 +1,29 @@
-package org.ufla.dcc.naivejudge.servico;
+package org.ufla.dcc.naivejudge.service;
 
 import java.util.List;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.ufla.dcc.naivejudge.modelo.problema.Submissao;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
-import org.ufla.dcc.naivejudge.repositorio.SubmissaoDao;
+import org.ufla.dcc.naivejudge.domain.problem.Submission;
+import org.ufla.dcc.naivejudge.domain.user.User;
+import org.ufla.dcc.naivejudge.repository.SubmissionRepository;
 
 @Service
-public class SubmissaoServiceImpl implements SubmissaoService {
+public class SubmissionServiceImpl implements SubmissionService {
 
   @Autowired
-  SubmissaoDao submissaoDao;
+  private SubmissionRepository submissionRepository;
 
   @Override
   @Transactional
-  public Submissao getSubmissao(Integer submissaoId) {
-    return submissaoDao.getSubmissao(submissaoId);
+  public Submission getSubmission(Long id) {
+    return submissionRepository.getSubmission(id);
   }
 
   @Override
   @Transactional
-  public List<Submissao> getSubmissoes(Usuario usuario) {
-    return submissaoDao.getSubmissoes(usuario);
+  public List<Submission> getSubmissions(User user) {
+    return submissionRepository.getSubmissions(user);
   }
 
 }

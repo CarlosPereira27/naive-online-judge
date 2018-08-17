@@ -1,30 +1,30 @@
-package org.ufla.dcc.naivejudge.modelo.enums;
+package org.ufla.dcc.naivejudge.domain.user;
 
 import java.io.Serializable;
 
-public enum Genero implements Serializable {
+public enum Gender implements Serializable {
 
-  MASCULINO(0, "Masculino"), FEMININO(1, "Feminino");
+  MALE(0, "Masculino"), FEMALE(1, "Feminino");
 
   private int id;
-  private String nome;
+  private String name;
 
-  private Genero(int id, String nome) {
+  private Gender(int id, String name) {
     this.id = id;
-    this.nome = nome;
+    this.name = name;
   }
 
   public int getId() {
     return id;
   }
 
-  public String getNome() {
-    return nome;
+  public String getName() {
+    return name;
   }
 
   @Override
   public String toString() {
-    return nome;
+    return name;
   }
 
 }

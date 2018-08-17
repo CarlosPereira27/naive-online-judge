@@ -1,4 +1,4 @@
-package org.ufla.dcc.naivejudge.modelo.problema;
+package org.ufla.dcc.naivejudge.domain.problem;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,57 +13,55 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import org.ufla.dcc.naivejudge.modelo.enums.Estado;
-import org.ufla.dcc.naivejudge.modelo.enums.Linguagem;
-import org.ufla.dcc.naivejudge.modelo.usuario.Usuario;
+import org.ufla.dcc.naivejudge.domain.user.User;
 
 @Entity
-public class Submissao implements Serializable {
+public class Submission implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column
-  private Integer id;
+  private Long id;
 
   @ManyToOne
   @JoinColumn(nullable = false)
-  private Usuario autor;
+  private User author;
 
   @ManyToOne
   @JoinColumn(nullable = false)
-  private Problema problema;
+  private Problem problem;
 
   @Column(nullable = false)
   @Enumerated(EnumType.ORDINAL)
-  private Linguagem linguagem;
+  private ProgrammingLanguage language;
 
   @Column(columnDefinition = "text", nullable = false)
-  private String implementacao;
+  private String implementation;
 
   @Column
-  private Integer tempo;
+  private Integer time;
 
   @Column
-  private Estado estado;
+  private State state;
 
   @Column(columnDefinition = "text")
-  private String mensagem;
+  private String message;
 
   @Column(nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
-  private Date dataEnvio;
+  private Date submissionDate;
 
-  public Submissao() {
-    inicializar();
+  public Submission() {
+    init();
   }
 
-  public Submissao(Usuario autor, Linguagem linguagem, String implementacao) {
-    this.autor = autor;
-    this.linguagem = linguagem;
-    this.implementacao = implementacao;
-    inicializar();
+  public Submission(User author, ProgrammingLanguage language, String implementation) {
+    this.author = author;
+    this.language = language;
+    this.implementation = implementation;
+    init();
   }
 
   @Override
@@ -74,134 +72,134 @@ public class Submissao implements Serializable {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    Submissao other = (Submissao) obj;
-    if (autor == null) {
-      if (other.autor != null)
+    Submission other = (Submission) obj;
+    if (author == null) {
+      if (other.author != null)
         return false;
-    } else if (!autor.equals(other.autor))
+    } else if (!author.equals(other.author))
       return false;
-    if (dataEnvio == null) {
-      if (other.dataEnvio != null)
+    if (submissionDate == null) {
+      if (other.submissionDate != null)
         return false;
-    } else if (!dataEnvio.equals(other.dataEnvio))
+    } else if (!submissionDate.equals(other.submissionDate))
       return false;
-    if (estado != other.estado)
+    if (state != other.state)
       return false;
     if (id == null) {
       if (other.id != null)
         return false;
     } else if (!id.equals(other.id))
       return false;
-    if (implementacao == null) {
-      if (other.implementacao != null)
+    if (implementation == null) {
+      if (other.implementation != null)
         return false;
-    } else if (!implementacao.equals(other.implementacao))
+    } else if (!implementation.equals(other.implementation))
       return false;
-    if (linguagem != other.linguagem)
+    if (language != other.language)
       return false;
-    if (tempo == null) {
-      if (other.tempo != null)
+    if (time == null) {
+      if (other.time != null)
         return false;
-    } else if (!tempo.equals(other.tempo))
+    } else if (!time.equals(other.time))
       return false;
     return true;
   }
 
-  public Usuario getAutor() {
-    return autor;
+  public User getAuthor() {
+    return author;
   }
 
-  public Date getDataEnvio() {
-    return dataEnvio;
-  }
-
-  public Estado getEstado() {
-    return estado;
-  }
-
-  public Integer getId() {
+  public Long getId() {
     return id;
   }
 
-  public String getImplementacao() {
-    return implementacao;
+  public String getImplementation() {
+    return implementation;
   }
 
-  public Linguagem getLinguagem() {
-    return linguagem;
+  public ProgrammingLanguage getLanguage() {
+    return language;
   }
 
-  public String getMensagem() {
-    return mensagem;
+  public String getMessage() {
+    return message;
   }
 
-  public Problema getProblema() {
-    return problema;
+  public Problem getProblem() {
+    return problem;
   }
 
-  public Integer getTempo() {
-    return tempo;
+  public State getState() {
+    return state;
+  }
+
+  public Date getSubmissionDate() {
+    return submissionDate;
+  }
+
+  public Integer getTime() {
+    return time;
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((autor == null) ? 0 : autor.hashCode());
-    result = prime * result + ((dataEnvio == null) ? 0 : dataEnvio.hashCode());
-    result = prime * result + ((estado == null) ? 0 : estado.hashCode());
+    result = prime * result + ((author == null) ? 0 : author.hashCode());
+    result = prime * result + ((submissionDate == null) ? 0 : submissionDate.hashCode());
+    result = prime * result + ((state == null) ? 0 : state.hashCode());
     result = prime * result + ((id == null) ? 0 : id.hashCode());
-    result = prime * result + ((implementacao == null) ? 0 : implementacao.hashCode());
-    result = prime * result + ((linguagem == null) ? 0 : linguagem.hashCode());
-    result = prime * result + ((tempo == null) ? 0 : tempo.hashCode());
+    result = prime * result + ((implementation == null) ? 0 : implementation.hashCode());
+    result = prime * result + ((language == null) ? 0 : language.hashCode());
+    result = prime * result + ((time == null) ? 0 : time.hashCode());
     return result;
   }
 
-  public void setAutor(Usuario autor) {
-    this.autor = autor;
+  private void init() {
+    this.submissionDate = new Date();
   }
 
-  public void setDataEnvio(Date dataEnvio) {
-    this.dataEnvio = dataEnvio;
+  public void setAuthor(User author) {
+    this.author = author;
   }
 
-  public void setEstado(Estado estado) {
-    this.estado = estado;
-  }
-
-  public void setId(Integer id) {
+  public void setId(Long id) {
     this.id = id;
   }
 
-  public void setImplementacao(String implementacao) {
-    this.implementacao = implementacao;
+  public void setImplementation(String implementation) {
+    this.implementation = implementation;
   }
 
-  public void setLinguagem(Linguagem linguagem) {
-    this.linguagem = linguagem;
+  public void setLanguage(ProgrammingLanguage language) {
+    this.language = language;
   }
 
-  public void setMensagem(String mensagem) {
-    this.mensagem = mensagem;
+  public void setMessage(String message) {
+    this.message = message;
   }
 
-  public void setProblema(Problema problema) {
-    this.problema = problema;
+  public void setProblem(Problem problem) {
+    this.problem = problem;
   }
 
-  public void setTempo(Integer tempo) {
-    this.tempo = tempo;
+  public void setState(State state) {
+    this.state = state;
+  }
+
+  public void setSubmissionDate(Date submissionDate) {
+    this.submissionDate = submissionDate;
+  }
+
+  public void setTime(Integer time) {
+    this.time = time;
   }
 
   @Override
   public String toString() {
-    return "Submissao [id=" + id + ", autor=" + autor + ", linguagem=" + linguagem
-        + ", implementacao=" + implementacao + ", tempo=" + tempo + ", estado=" + estado
-        + ", dataEnvio=" + dataEnvio + "]";
-  }
-
-  private void inicializar() {
-    this.dataEnvio = new Date();
+    return "Submission [id=" + id + ", author=" + author + ", language=" + language
+        + ", implementation=" + implementation + ", time=" + time + ", state=" + state
+        + ", submissionDate=" + submissionDate + "]";
   }
 
 }

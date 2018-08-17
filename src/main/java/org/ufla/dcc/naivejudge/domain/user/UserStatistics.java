@@ -1,75 +1,75 @@
-package org.ufla.dcc.naivejudge.modelo.usuario;
+package org.ufla.dcc.naivejudge.domain.user;
 
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import org.ufla.dcc.naivejudge.modelo.enums.Estado;
+import org.ufla.dcc.naivejudge.domain.problem.State;
 
 @Embeddable
-public class UsuarioEstatistica implements Serializable {
+public class UserStatistics implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   @Column(nullable = false)
-  private Integer qtdSubmissoes;
+  private Integer qtySubmissions;
 
   @Column(nullable = false)
-  private Integer qtdProblemasResolvidos;
+  private Integer qtyAcceptedProblems;
 
   @Column(nullable = false)
-  private Integer qtdProblemasTentados;
+  private Integer qtyTryProblems;
 
-  public UsuarioEstatistica() {
-    this.qtdSubmissoes = 0;
-    this.qtdProblemasResolvidos = 0;
-    this.qtdProblemasTentados = 0;
+  public UserStatistics() {
+    this.qtySubmissions = 0;
+    this.qtyAcceptedProblems = 0;
+    this.qtyTryProblems = 0;
   }
 
-  public UsuarioEstatistica(Integer qtdSubmissoes, Integer qtdProblemasResolvidos,
-      Integer qtdProblemasTentados) {
-    this.qtdSubmissoes = qtdSubmissoes;
-    this.qtdProblemasResolvidos = qtdProblemasResolvidos;
-    this.qtdProblemasTentados = qtdProblemasTentados;
+  public UserStatistics(Integer qtySubmissions, Integer qtyAcceptedProblems,
+      Integer qtyTryProblems) {
+    this.qtySubmissions = qtySubmissions;
+    this.qtyAcceptedProblems = qtyAcceptedProblems;
+    this.qtyTryProblems = qtyTryProblems;
   }
 
-  public void atualizarSubmissao(boolean novoProblema, boolean naoResolvido, Estado estado) {
-    qtdSubmissoes++;
-    if (novoProblema) {
-      qtdProblemasTentados++;
-    }
-    if (estado.equals(Estado.CORRETO) && naoResolvido) {
-      qtdProblemasResolvidos++;
-    }
+  public Integer getQtyAcceptedProblems() {
+    return qtyAcceptedProblems;
   }
 
-  public Integer getQtdProblemasResolvidos() {
-    return qtdProblemasResolvidos;
+  public Integer getQtySubmissions() {
+    return qtySubmissions;
   }
 
-  public Integer getQtdProblemasTentados() {
-    return qtdProblemasTentados;
+  public Integer getQtyTryProblems() {
+    return qtyTryProblems;
   }
 
-  public Integer getQtdSubmissoes() {
-    return qtdSubmissoes;
+  public void setQtyAcceptedProblems(Integer qtyAcceptedProblems) {
+    this.qtyAcceptedProblems = qtyAcceptedProblems;
   }
 
-  public void setQtdProblemasResolvidos(Integer qtdProblemasResolvidos) {
-    this.qtdProblemasResolvidos = qtdProblemasResolvidos;
+  public void setQtySubmissions(Integer qtySubmissions) {
+    this.qtySubmissions = qtySubmissions;
   }
 
-  public void setQtdProblemasTentados(Integer qtdProblemasTentados) {
-    this.qtdProblemasTentados = qtdProblemasTentados;
-  }
-
-  public void setQtdSubmissoes(Integer qtdSubmissoes) {
-    this.qtdSubmissoes = qtdSubmissoes;
+  public void setQtyTryProblems(Integer qtyTryProblems) {
+    this.qtyTryProblems = qtyTryProblems;
   }
 
   @Override
   public String toString() {
-    return "UsuarioEstatistica [qtdSubmissoes=" + qtdSubmissoes + ", qtdProblemasResolvidos="
-        + qtdProblemasResolvidos + ", qtdProblemasTentados=" + qtdProblemasTentados + "]";
+    return "UserStatistics [qtySubmissions=" + qtySubmissions + ", qtyAcceptedProblems="
+        + qtyAcceptedProblems + ", qtyTryProblems=" + qtyTryProblems + "]";
+  }
+
+  public void updateSubmission(boolean newProblem, boolean notAccepted, State state) {
+    qtySubmissions++;
+    if (newProblem) {
+      qtyTryProblems++;
+    }
+    if (state.equals(State.ACCEPTED) && notAccepted) {
+      qtyAcceptedProblems++;
+    }
   }
 
 }
